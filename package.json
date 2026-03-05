@@ -17,7 +17,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build && electron-builder",
+    "clean": "rm -rf dist dist-electron release",
+    "build": "npm run clean && vue-tsc && vite build && electron-builder",
+    "build:quick": "npm run clean && vue-tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
