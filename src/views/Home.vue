@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen p-6 flex flex-col">
-    Woof
+    Test content
   </div>
 </template>
 

@@ -20,7 +20,7 @@ export const useFileStore = defineStore(Constants.STORE.FILES, {
 
     async syncDocuments() {
       try {
-        this.files = await window.api.fs.syncDocuments();
+        // this.files = await window.api.fs.syncDocuments();
       } catch (error) {
         console.error("Failed to sync documents:", error);
       }

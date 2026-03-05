@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createMemoryHistory, RouteRecordRaw } from "vue-router";
 import Constants from "@shared/constants";
 
 const routes: RouteRecordRaw[] = [
@@ -13,7 +13,7 @@ const routes: RouteRecordRaw[] = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createMemoryHistory(),
   routes,
 });
 export default router;
