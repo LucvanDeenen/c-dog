@@ -1,0 +1,45 @@
+{
+  "name": "sides",
+  "private": true,
+  "description": "Helps manage projects",
+  "author": "LucvanDeenen",
+  "version": "0.0.1",
+  "build": {
+    "appId": "com.dedeen.sides",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist",
+      "dist-electron"
+    ]
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build && electron-builder",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@heroicons/vue": "^2.1.1",
+    "@mdi/js": "^7.4.47",
+    "@tailwindcss/vite": "^4.1.16",
+    "@types/node": "^24.9.2",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "electron": "^40.1.0",
+    "electron-builder": "^26.7.0",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.3.0",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.2.2",
+    "vite": "^7.3.1",
+    "vite-plugin-electron": "^0.28.6",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vue-router": "^4.5.1",
+    "vue-tsc": "^2.0.26"
+  },
+  "main": "dist-electron/main.js"
+}
