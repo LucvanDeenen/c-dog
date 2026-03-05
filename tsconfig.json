@@ -27,16 +27,16 @@
         "./src/*"
       ],
       "@electron/*": [
-        "./electron/*"
+        "./src/electron/*"
       ],
       "@shared/*": [
-        "./shared/*"
+        "./src/shared/*"
       ],
       "@util/*": [
-        "./util/*"
+        "./src/util/*"
       ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "electron", "electron/**/*.ts", "shared", "util"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/electron", "src/electron/**/*.ts", "src/shared", "src/util"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

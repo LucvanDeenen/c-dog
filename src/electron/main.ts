@@ -58,7 +58,7 @@ app.on("activate", () => {
 // Register all filesystem actions
 // located in electron/actions/*.ts
 // by importing them and calling them here.
-import { registerHandlers } from "@electron/util/register";
+import { registerHandlers } from "@util/ipc/register";
 import services from "@electron/actions";
 
 app.whenReady().then(async () => {
