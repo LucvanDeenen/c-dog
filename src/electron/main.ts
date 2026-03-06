@@ -67,13 +67,14 @@ function getWindowConfig(mode: WindowMode, vitePublic: string) {
     return {
       ...baseConfig,
       width: 400,
-      height: 300,
+      height: 600,
       x: width - 400 - 10,
-      y: height - 300 - 10,
+      y: height - 600 - 10,
       resizable: false,
       movable: false,
       alwaysOnTop: true,
-      frame: true,
+      frame: false,
+      titleBarStyle: "hidden",
     };
   } else {
     return {
@@ -83,7 +84,8 @@ function getWindowConfig(mode: WindowMode, vitePublic: string) {
       resizable: true,
       movable: true,
       alwaysOnTop: false,
-      frame: true,
+      frame: false,
+      titleBarStyle: "hidden",
     };
   }
 }

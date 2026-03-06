@@ -1,44 +1,83 @@
 <template>
-  <div class="min-h-screen p-6 flex flex-col" :data-window-mode="windowMode">
-    <Settings />
+  <div class="h-screen flex flex-col">
+    <!-- Quick Actions Bar -->
+    <div
+      class="bg-slate-800 border-slate-700 flex items-center gap-3 px-6 py-3 flex-shrink-0 h-[75px]"
+    >
+      <div class="flex-1 flex items-center bg-slate-900 rounded px-3 py-2">
+        <svg class="w-4 h-4 text-slate-400 mr-2 icon-sm" viewBox="0 0 24 24">
+          <path :d="mdiMagnify" fill="currentColor" />
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search projects..."
+          class="bg-transparent text-sm text-slate-200 outline-none flex-1 placeholder-slate-500"
+        />
+      </div>
+      <button
+        @click="toggleWindowMode"
+        class="icon-button"
+        :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path
+            :d="
+              windowMode === 'regular' ? mdiWindowMinimize : mdiWindowMaximize
+            "
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+    </div>
 
-    <!-- Projects Section -->
-    <div class="mt-8 bg-white dark:bg-gray-900 rounded-lg shadow p-6">
-      <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Git Projects</h2>
-      
-      <div v-if="loadingProjects" class="text-gray-600 dark:text-gray-300">
-        Loading projects...
-      </div>
-      
-      <div v-else-if="projects.length === 0" class="text-gray-600 dark:text-gray-300">
-        No git projects found in ~/repos
-      </div>
-      
-      <div v-else class="space-y-2">
-        <div 
-          v-for="project in projects" 
-          :key="project.path"
-          class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-        >
-          <div>
-            <p class="font-semibold text-gray-900 dark:text-white">{{ project.name }}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ project.path }}</p>
-          </div>
-          <button
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-6" :data-window-mode="windowMode">
+      <!-- Projects Section -->
+      <div class="projects-section">
+        <div v-if="loadingProjects" class="loading-state">
+          Loading projects...
+        </div>
+
+        <div v-else-if="projects.length === 0" class="empty-state">
+          No git projects found in ~/repos
+        </div>
+
+        <div v-else-if="filteredProjects.length === 0" class="empty-state">
+          No projects match your search
+        </div>
+
+        <div v-else class="projects-grid">
+          <div
+            v-for="project in filteredProjects"
+            :key="project.path"
+            class="project-card"
             @click="openProject(project.path)"
-            class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition"
           >
-            Open
-          </button>
+            <div class="project-info">
+              <svg class="w-4 h-4 icon" viewBox="0 0 24 24">
+                <path :d="mdiFileCode" fill="currentColor" />
+              </svg>
+              <div class="flex flex-col">
+                <p class="project-name">{{ project.name }}</p>
+                <p class="project-path italic">{{ project.path }}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import Settings from "@components/Settings.vue";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import {
+  mdiFileCode,
+  mdiWindowMinimize,
+  mdiWindowMaximize,
+  mdiMagnify,
+} from "@mdi/js";
 import type { WindowMode } from "@electron/services/settings";
 
 interface Project {
@@ -49,8 +88,30 @@ interface Project {
 const windowMode = ref<WindowMode>("regular");
 const projects = ref<Project[]>([]);
 const loadingProjects = ref(true);
+const searchQuery = ref("");
+
+const filteredProjects = computed(() => {
+  if (!searchQuery.value) return projects.value;
+  const query = searchQuery.value.toLowerCase();
+  return projects.value.filter(
+    (project) =>
+      project.name.toLowerCase().includes(query) ||
+      project.path.toLowerCase().includes(query),
+  );
+});
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
+
+const toggleWindowMode = async () => {
+  const newMode = windowMode.value === "regular" ? "docked" : "regular";
+  console.log("Toggling window mode to:", newMode);
+  window.ipc.send("window:switchMode", newMode);
+};
+
+const openProject = (projectPath: string) => {
+  console.log("Opening project:", projectPath);
+  // TODO: Implement functionality to open the project (e.g., open in VS Code)
+};
 
 onMounted(async () => {
   // Fetch current window mode on mount
@@ -89,9 +150,4 @@ onUnmounted(() => {
     modeChangeHandler = null;
   }
 });
-
-const openProject = (projectPath: string) => {
-  console.log("Opening project:", projectPath);
-  // TODO: Implement functionality to open the project (e.g., open in VS Code)
-};
 </script>
