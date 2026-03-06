@@ -18,7 +18,7 @@ const api = {
     setWindowMode: (mode: string) => ipcRenderer.invoke('settings.setWindowMode', [mode]),
   },
   fs: {
-    // Add file system methods here if needed
+    listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
   },
 };
 
