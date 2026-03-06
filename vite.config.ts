@@ -9,6 +9,7 @@ const alias = {
   "@electron": path.resolve(__dirname, "./src/electron"),
   "@shared": path.resolve(__dirname, "./src/shared"),
   "@util": path.resolve(__dirname, "./src/util"),
+  "@components": path.resolve(__dirname, "./src/components"),
 };
 
 // https://vitejs.dev/config/

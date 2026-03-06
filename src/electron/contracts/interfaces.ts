@@ -1,8 +1,12 @@
+import { SettingsHandler } from "@electron/actions/settings";
+import FileHandler from "@electron/actions/filesystem";
+
 /**
  * Interface definition of the contract for exposing all APIs.
  */
 export default class Contract {
-  fs: FileSystem = new FileSystem();
+  fs: FileHandler = new FileHandler();
+  settings: SettingsHandler = new SettingsHandler();
 }
 
 /**

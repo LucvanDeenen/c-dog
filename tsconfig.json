@@ -34,6 +34,9 @@
       ],
       "@util/*": [
         "./src/util/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
       ]
     }
   },

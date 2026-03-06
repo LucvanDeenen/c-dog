@@ -94,3 +94,23 @@
     overflow-x: auto;
   }
 }
+
+/* Docked mode styling */
+[data-window-mode="docked"] {
+  background-color: #1a1c1f;
+  padding: 0;
+}
+
+[data-window-mode="docked"] body {
+  background-color: #1a1c1f;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #2f3136;
+  border-radius: 8px;
+}
+
+[data-window-mode="docked"] .min-h-screen {
+  padding: 8px;
+  background: linear-gradient(135deg, #202225 0%, #1a1c1f 100%);
+  border-radius: 8px;
+}

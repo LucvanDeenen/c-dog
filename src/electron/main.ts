@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
+import { getSettingsManager, type WindowMode } from "@electron/services/settings";
 
 // Set userData path before app is ready to avoid cache permission issues
 const __filename = fileURLToPath(import.meta.url);
@@ -12,6 +13,80 @@ app.setPath("userData", userDataPath);
 let win: BrowserWindow | null;
 let tray: Tray | null = null;
 let isQuitting = false;
+let isSwitchingMode = false;
+let currentWindowMode: WindowMode = "regular";
+
+function updateTrayMenu() {
+  if (!tray) return;
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: `Mode: ${currentWindowMode === "docked" ? "Docked" : "Regular"}`,
+      enabled: false,
+    },
+    { type: "separator" },
+    {
+      label: "Toggle Mode",
+      click: () => {
+        const newMode = currentWindowMode === "docked" ? "regular" : "docked";
+        console.log("Tray menu toggle clicked, switching to:", newMode);
+        switchWindowMode(newMode);
+      },
+    },
+    { type: "separator" },
+    {
+      label: "Show",
+      click: () => {
+        if (win) {
+          win.show();
+          win.focus();
+        }
+      },
+    },
+    {
+      label: "Quit",
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+  tray.setContextMenu(contextMenu);
+}
+
+function getWindowConfig(mode: WindowMode, vitePublic: string) {
+  const baseConfig = {
+    icon: path.join(vitePublic, "electron-vite.svg"),
+    webPreferences: {
+      preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.mjs"),
+    },
+  };
+
+  if (mode === "docked") {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workAreaSize;
+    return {
+      ...baseConfig,
+      width: 400,
+      height: 300,
+      x: width - 400 - 10,
+      y: height - 300 - 10,
+      resizable: false,
+      movable: false,
+      alwaysOnTop: true,
+      frame: true,
+    };
+  } else {
+    return {
+      ...baseConfig,
+      width: 1500,
+      height: 1000,
+      resizable: true,
+      movable: true,
+      alwaysOnTop: false,
+      frame: true,
+    };
+  }
+}
 
 function createWindow() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,14 +100,8 @@ function createWindow() {
     ? path.join(process.env.APP_ROOT, "public")
     : RENDERER_DIST;
 
-  win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    height: 1000,
-    width: 1500,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.mjs"),
-    },
-  });
+  const windowConfig = getWindowConfig(currentWindowMode, process.env.VITE_PUBLIC);
+  win = new BrowserWindow(windowConfig);
 
   // Create system tray
   if (!tray) {
@@ -84,24 +153,7 @@ function createWindow() {
       return;
     }
 
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: "Show",
-        click: () => {
-          if (win) {
-            win.show();
-            win.focus();
-          }
-        },
-      },
-      {
-        label: "Quit",
-        click: () => {
-          app.quit();
-        },
-      },
-    ]);
-    tray.setContextMenu(contextMenu);
+    updateTrayMenu();
     tray.on("click", () => {
       if (win) {
         if (win.isVisible()) {
@@ -121,7 +173,7 @@ function createWindow() {
 
   // Handle close to tray
   win.on("close", (event: Electron.Event) => {
-    if (!isQuitting) {
+    if (!isQuitting && !isSwitchingMode) {
       event.preventDefault();
       win?.hide();
     }
@@ -130,6 +182,8 @@ function createWindow() {
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
+    // Notify renderer of current window mode
+    win?.webContents.send("window:modeChanged", currentWindowMode);
   });
 
   if (VITE_DEV_SERVER_URL) {
@@ -154,6 +208,43 @@ app.on("before-quit", () => {
   isQuitting = true;
 });
 
+function switchWindowMode(newMode: WindowMode) {
+  if (newMode === currentWindowMode) {
+    console.log("Window mode already set to:", currentWindowMode);
+    return;
+  }
+
+  console.log("Switching window mode from", currentWindowMode, "to", newMode);
+  isSwitchingMode = true;
+  currentWindowMode = newMode;
+  getSettingsManager().setWindowMode(newMode);
+
+  // Close current window gracefully
+  if (win) {
+    console.log("Closing current window for mode switch");
+    const oldWin = win;
+    win = null;
+
+    // Use close() instead of destroy() for graceful shutdown
+    oldWin.close();
+
+    // Wait for the window to close before creating new one
+    oldWin.once("closed", () => {
+      console.log("Old window closed, creating new window with mode:", newMode);
+      createWindow();
+      isSwitchingMode = false;
+      // Update tray menu after new window is created
+      updateTrayMenu();
+    });
+  } else {
+    // If no window exists, just create a new one
+    console.log("No existing window, creating new window with mode:", newMode);
+    createWindow();
+    isSwitchingMode = false;
+    updateTrayMenu();
+  }
+}
+
 app.on("activate", () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -169,6 +260,16 @@ import { registerHandlers } from "@util/ipc/register";
 import services from "@electron/actions";
 
 app.whenReady().then(async () => {
+  // Load saved window mode preference
+  currentWindowMode = getSettingsManager().getWindowMode();
+  console.log("Loaded window mode preference:", currentWindowMode);
+
+  // Register IPC listener for window mode changes from renderer
+  ipcMain.on("window:switchMode", (_event, newMode: WindowMode) => {
+    console.log("Received window:switchMode IPC event with mode:", newMode);
+    switchWindowMode(newMode);
+  });
+
   registerHandlers(services);
   createWindow();
 });
