@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-slate-800 border-slate-700 flex items-center gap-3 px-6 py-3 flex-shrink-0">
-    <div class="flex-1 flex items-center bg-slate-900 rounded px-3 py-2">
+  <div class="bg-slate-800 border-slate-700 flex items-center gap-3 flex-shrink-0 min-h-[75px]">
+    <div class="flex-1 flex items-center bg-slate-900 rounded">
       <svg class="w-4 h-4 text-slate-400 mr-2 icon-sm" viewBox="0 0 24 24">
         <path :d="mdiMagnify" fill="currentColor" />
       </svg>

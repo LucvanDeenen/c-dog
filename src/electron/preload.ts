@@ -21,6 +21,9 @@ const api = {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
     openInEditor: (projectPath: string, editor: string = "vscode") => ipcRenderer.invoke('fs.openInEditor', [projectPath, editor]),
   },
+  window: {
+    minimize: () => ipcRenderer.invoke('window.minimize'),
+  },
 };
 
 contextBridge.exposeInMainWorld(Constants.ELECTRON.API, api);

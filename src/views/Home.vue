@@ -48,6 +48,13 @@ const openProject = async (projectPath: string, editor: string = "vscode") => {
       alert(
         `Failed to open project in ${editor}. Make sure it is installed and on your PATH.`,
       );
+    } else {
+      // Call the minimize IPC directly, since it's not in the auto-typed API
+      if (window.api && (window.api as any).window && typeof (window.api as any).window.minimize === 'function') {
+        (window.api as any).window.minimize();
+      } else if (window.api && (window.api as any).window_minimize) {
+        (window.api as any).window_minimize();
+      }
     }
   } catch (error) {
     alert(`Error opening project: ${error}`);

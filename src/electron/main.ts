@@ -1,3 +1,11 @@
+// Add IPC handler for minimizing the window
+ipcMain.handle('window.minimize', () => {
+  if (win) {
+    win.minimize();
+    return true;
+  }
+  return false;
+});
 import { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
