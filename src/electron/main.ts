@@ -1,11 +1,3 @@
-// Add IPC handler for minimizing the window
-ipcMain.handle('window.minimize', () => {
-  if (win) {
-    win.minimize();
-    return true;
-  }
-  return false;
-});
 import { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -23,6 +15,24 @@ let tray: Tray | null = null;
 let isQuitting = false;
 let isSwitchingMode = false;
 let currentWindowMode: WindowMode = "regular";
+
+function minimizeToTray(target: BrowserWindow | null = win) {
+  if (!target || target.isDestroyed()) {
+    return;
+  }
+  target.hide();
+}
+
+function showMainWindow() {
+  if (!win || win.isDestroyed()) {
+    return;
+  }
+  if (win.isMinimized()) {
+    win.restore();
+  }
+  win.show();
+  win.focus();
+}
 
 function updateTrayMenu() {
   if (!tray) return;
@@ -44,11 +54,16 @@ function updateTrayMenu() {
     { type: "separator" },
     {
       label: "Show",
+      enabled: !!win && !win.isVisible(),
       click: () => {
-        if (win) {
-          win.show();
-          win.focus();
-        }
+        showMainWindow();
+      },
+    },
+    {
+      label: "Minimize to Tray",
+      enabled: !!win && win.isVisible(),
+      click: () => {
+        minimizeToTray();
       },
     },
     {
@@ -60,6 +75,15 @@ function updateTrayMenu() {
   ]);
   tray.setContextMenu(contextMenu);
 }
+
+// Add IPC handler for minimizing the window
+ipcMain.handle("window.minimize", () => {
+  if (!win || win.isDestroyed()) {
+    return false;
+  }
+  minimizeToTray(win);
+  return true;
+});
 
 function getWindowConfig(mode: WindowMode, vitePublic: string) {
   const baseConfig = {
@@ -165,29 +189,39 @@ function createWindow() {
 
     updateTrayMenu();
     tray.on("click", () => {
-      if (win) {
-        if (win.isVisible()) {
-          win.hide();
-        } else {
-          win.show();
-          win.focus();
-        }
+      if (!win || win.isDestroyed()) {
+        return;
+      }
+
+      if (win.isVisible() && !win.isMinimized()) {
+        minimizeToTray(win);
+      } else {
+        showMainWindow();
       }
     });
   }
 
   // Handle minimize to tray
   win.on("minimize", () => {
-    win?.hide();
+    // Defer to ensure the window state transition completes before hiding to tray.
+    setTimeout(() => {
+      minimizeToTray(win);
+      updateTrayMenu();
+    }, 0);
   });
 
   // Handle close to tray
   win.on("close", (event: Electron.Event) => {
     if (!isQuitting && !isSwitchingMode) {
       event.preventDefault();
-      win?.hide();
+      minimizeToTray(win);
+      updateTrayMenu();
     }
   });
+
+  // Keep tray menu state in sync with visibility.
+  win.on("show", updateTrayMenu);
+  win.on("hide", updateTrayMenu);
 
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {

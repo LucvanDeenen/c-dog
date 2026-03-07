@@ -5,6 +5,7 @@
       :searchQuery="searchQuery"
       @update:searchQuery="searchQuery = $event"
       @toggleWindowMode="toggleWindowMode"
+      @closeToTray="closeToTray"
     />
     <HomeContent
       :windowMode="windowMode"
@@ -34,6 +35,14 @@ const searchQuery = ref("");
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
+const minimizeWindowToTray = () => {
+  if (window.api && (window.api as any).window && typeof (window.api as any).window.minimize === "function") {
+    (window.api as any).window.minimize();
+  } else if (window.api && (window.api as any).window_minimize) {
+    (window.api as any).window_minimize();
+  }
+};
+
 const toggleWindowMode = async () => {
   const newMode = windowMode.value === "regular" ? "docked" : "regular";
   console.log("Toggling window mode to:", newMode);
@@ -49,16 +58,15 @@ const openProject = async (projectPath: string, editor: string = "vscode") => {
         `Failed to open project in ${editor}. Make sure it is installed and on your PATH.`,
       );
     } else {
-      // Call the minimize IPC directly, since it's not in the auto-typed API
-      if (window.api && (window.api as any).window && typeof (window.api as any).window.minimize === 'function') {
-        (window.api as any).window.minimize();
-      } else if (window.api && (window.api as any).window_minimize) {
-        (window.api as any).window_minimize();
-      }
+      minimizeWindowToTray();
     }
   } catch (error) {
     alert(`Error opening project: ${error}`);
   }
+};
+
+const closeToTray = () => {
+  minimizeWindowToTray();
 };
 
 onMounted(async () => {
