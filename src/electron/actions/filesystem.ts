@@ -12,6 +12,33 @@ export interface Project {
  * {@inheritDoc}
  */
 export default class FileHandler extends FileSystem {
+    /**
+     * Open a given path in the specified editor (default: vscode)
+     * @param projectPath The path to open
+     * @param editor The editor to use (e.g., 'vscode')
+     */
+    async openInEditor(projectPath: string, editor: string = "vscode"): Promise<boolean> {
+      try {
+        let command: string;
+        switch (editor) {
+          case "vscode":
+          default:
+            command = `code "${projectPath}"`;
+            break;
+        }
+        const { exec } = await import("child_process");
+        exec(command, (error) => {
+          if (error) {
+            console.error(`Failed to open in editor:`, error);
+            return false;
+          }
+        });
+        return true;
+      } catch (error) {
+        console.error("Error opening in editor:", error);
+        return false;
+      }
+    }
   /**
    * List all directories in ~/repos that contain a .git folder (git repositories)
    */

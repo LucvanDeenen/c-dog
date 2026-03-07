@@ -19,6 +19,7 @@ const api = {
   },
   fs: {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
+    openInEditor: (projectPath: string, editor: string = "vscode") => ipcRenderer.invoke('fs.openInEditor', [projectPath, editor]),
   },
 };
 

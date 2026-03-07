@@ -15,6 +15,8 @@
           class="bg-transparent text-sm text-slate-200 outline-none flex-1 placeholder-slate-500"
         />
       </div>
+    </div>
+    <div>
       <button
         @click="toggleWindowMode"
         class="icon-button"
@@ -108,9 +110,17 @@ const toggleWindowMode = async () => {
   window.ipc.send("window:switchMode", newMode);
 };
 
-const openProject = (projectPath: string) => {
-  console.log("Opening project:", projectPath);
-  // TODO: Implement functionality to open the project (e.g., open in VS Code)
+
+const openProject = async (projectPath: string, editor: string = "vscode") => {
+  console.log("Opening project in editor:", editor, projectPath);
+  try {
+    const result = await window.api.fs.openInEditor(projectPath, editor);
+    if (!result) {
+      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
+    }
+  } catch (error) {
+    alert(`Error opening project: ${error}`);
+  }
 };
 
 onMounted(async () => {
