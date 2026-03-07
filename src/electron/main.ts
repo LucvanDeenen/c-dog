@@ -74,7 +74,7 @@ function getWindowConfig(mode: WindowMode, vitePublic: string) {
       movable: false,
       alwaysOnTop: true,
       frame: false,
-      titleBarStyle: "hidden",
+      titleBarStyle: "hiddenInset" as const,
     };
   } else {
     return {
@@ -85,7 +85,7 @@ function getWindowConfig(mode: WindowMode, vitePublic: string) {
       movable: true,
       alwaysOnTop: false,
       frame: false,
-      titleBarStyle: "hidden",
+      titleBarStyle: "hiddenInset" as const,
     };
   }
 }

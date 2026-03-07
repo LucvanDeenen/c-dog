@@ -1,85 +1,25 @@
 <template>
   <div class="h-screen flex flex-col">
-    <!-- Quick Actions Bar -->
-    <div
-      class="bg-slate-800 border-slate-700 flex items-center gap-3 px-6 py-3 flex-shrink-0 h-[75px]"
-    >
-      <div class="flex-1 flex items-center bg-slate-900 rounded px-3 py-2">
-        <svg class="w-4 h-4 text-slate-400 mr-2 icon-sm" viewBox="0 0 24 24">
-          <path :d="mdiMagnify" fill="currentColor" />
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search projects..."
-          class="bg-transparent text-sm text-slate-200 outline-none flex-1 placeholder-slate-500"
-        />
-      </div>
-    </div>
-    <div>
-      <button
-        @click="toggleWindowMode"
-        class="icon-button"
-        :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
-      >
-        <svg class="w-5 h-5" viewBox="0 0 24 24">
-          <path
-            :d="
-              windowMode === 'regular' ? mdiWindowMinimize : mdiWindowMaximize
-            "
-            fill="currentColor"
-          />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Main Content -->
-    <main class="flex-1 overflow-auto p-6" :data-window-mode="windowMode">
-      <!-- Projects Section -->
-      <div class="projects-section">
-        <div v-if="loadingProjects" class="loading-state">
-          Loading projects...
-        </div>
-
-        <div v-else-if="projects.length === 0" class="empty-state">
-          No git projects found in ~/repos
-        </div>
-
-        <div v-else-if="filteredProjects.length === 0" class="empty-state">
-          No projects match your search
-        </div>
-
-        <div v-else class="projects-grid">
-          <div
-            v-for="project in filteredProjects"
-            :key="project.path"
-            class="project-card"
-            @click="openProject(project.path)"
-          >
-            <div class="project-info">
-              <svg class="w-4 h-4 icon" viewBox="0 0 24 24">
-                <path :d="mdiFileCode" fill="currentColor" />
-              </svg>
-              <div class="flex flex-col">
-                <p class="project-name">{{ project.name }}</p>
-                <p class="project-path italic">{{ project.path }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+    <HomeHeader
+      :windowMode="windowMode"
+      :searchQuery="searchQuery"
+      @update:searchQuery="searchQuery = $event"
+      @toggleWindowMode="toggleWindowMode"
+    />
+    <HomeContent
+      :windowMode="windowMode"
+      :projects="projects"
+      :loadingProjects="loadingProjects"
+      :searchQuery="searchQuery"
+      @openProject="openProject"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
-import {
-  mdiFileCode,
-  mdiWindowMinimize,
-  mdiWindowMaximize,
-  mdiMagnify,
-} from "@mdi/js";
+import { ref, onMounted, onUnmounted } from "vue";
+import HomeHeader from "@/components/HomeHeader.vue";
+import HomeContent from "@/components/HomeContent.vue";
 import type { WindowMode } from "@electron/services/settings";
 
 interface Project {
@@ -92,16 +32,6 @@ const projects = ref<Project[]>([]);
 const loadingProjects = ref(true);
 const searchQuery = ref("");
 
-const filteredProjects = computed(() => {
-  if (!searchQuery.value) return projects.value;
-  const query = searchQuery.value.toLowerCase();
-  return projects.value.filter(
-    (project) =>
-      project.name.toLowerCase().includes(query) ||
-      project.path.toLowerCase().includes(query),
-  );
-});
-
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
 const toggleWindowMode = async () => {
@@ -110,13 +40,14 @@ const toggleWindowMode = async () => {
   window.ipc.send("window:switchMode", newMode);
 };
 
-
 const openProject = async (projectPath: string, editor: string = "vscode") => {
   console.log("Opening project in editor:", editor, projectPath);
   try {
     const result = await window.api.fs.openInEditor(projectPath, editor);
     if (!result) {
-      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
+      alert(
+        `Failed to open project in ${editor}. Make sure it is installed and on your PATH.`,
+      );
     }
   } catch (error) {
     alert(`Error opening project: ${error}`);
