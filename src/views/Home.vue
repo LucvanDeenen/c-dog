@@ -1,19 +1,21 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden">
-    <HomeHeader
-      :windowMode="windowMode"
-      :searchQuery="searchQuery"
-      @update:searchQuery="searchQuery = $event"
-      @toggleWindowMode="toggleWindowMode"
-      @closeToTray="closeToTray"
-    />
-    <HomeContent
-      :windowMode="windowMode"
-      :projects="projects"
-      :loadingProjects="loadingProjects"
-      :searchQuery="searchQuery"
-      @openProject="openProject"
-    />
+  <div class="home-shell" :data-window-mode="windowMode">
+    <div class="home-frame">
+      <HomeHeader
+        :windowMode="windowMode"
+        :searchQuery="searchQuery"
+        @update:searchQuery="searchQuery = $event"
+        @toggleWindowMode="toggleWindowMode"
+        @closeToTray="closeToTray"
+      />
+      <HomeContent
+        :windowMode="windowMode"
+        :projects="projects"
+        :loadingProjects="loadingProjects"
+        :searchQuery="searchQuery"
+        @openProject="openProject"
+      />
+    </div>
   </div>
 </template>
 
@@ -107,3 +109,33 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.home-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% -20%, rgba(30, 64, 175, 0.4) 0%, transparent 35%),
+    radial-gradient(circle at 100% 20%, rgba(15, 23, 42, 0.9) 0%, transparent 30%),
+    linear-gradient(135deg, #0f172a, #111827 60%, #0b1220);
+}
+
+.home-frame {
+  height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  backdrop-filter: blur(4px);
+  background: rgba(2, 6, 23, 0.78);
+}
+
+[data-window-mode="docked"] .home-shell {
+  padding: 0.5rem;
+}
+
+[data-window-mode="docked"] .home-frame {
+  height: calc(100vh - 1rem);
+  border-radius: 0.75rem;
+}
+</style>
