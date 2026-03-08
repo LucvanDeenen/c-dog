@@ -69,7 +69,6 @@ function openProject(path: string) {
 }
 
 .projects-panel {
-  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -88,9 +87,7 @@ function openProject(path: string) {
 
 .project-card {
   padding: 1rem;
-  border-radius: 0.9rem;
   border: 1px solid rgba(100, 116, 139, 0.35);
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(17, 24, 39, 0.7));
   transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -135,10 +132,6 @@ function openProject(path: string) {
 }
 
 @media (max-width: 640px) {
-  .home-content {
-    padding: 0.85rem;
-  }
-
   .projects-grid {
     grid-template-columns: 1fr;
   }

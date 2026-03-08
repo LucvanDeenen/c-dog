@@ -16,7 +16,6 @@
       </label>
       <IconButton
         :icon="mdiClose"
-        title="Close to system tray"
         iconClass="w-5 h-5"
         customClass="home-header__icon-btn"
         @click="closeToTray"
@@ -74,7 +73,7 @@ function closeToTray() {
 
 .search-field {
   flex: 1;
-  min-height: 2.75rem;
+  min-height: 2.25rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
