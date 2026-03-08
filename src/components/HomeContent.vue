@@ -1,5 +1,5 @@
 <template>
-  <main class="flex-1 overflow-auto p-6" :data-window-mode="windowMode">
+  <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6" :data-window-mode="windowMode">
     <div class="projects-section">
       <div v-if="loadingProjects" class="loading-state">
         Loading projects...

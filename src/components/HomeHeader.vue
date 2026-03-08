@@ -22,7 +22,6 @@
     </div>
 
     <div class="mt-2 bg-slate-900 rounded px-2 py-1 flex items-center gap-2">
-      <span class="text-xs uppercase tracking-wide text-slate-400">Actions</span>
       <IconButton
         :icon="windowMode === 'regular' ? mdiWindowMinimize : mdiWindowMaximize"
         :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
