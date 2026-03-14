@@ -74,7 +74,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-import { mdiClose } from "@mdi/js";
 import type { WindowMode } from "@electron/services/settings";
 
 defineProps<{
