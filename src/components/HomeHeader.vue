@@ -24,7 +24,7 @@
       <IconButton
         :icon="mdiClose"
         iconClass="w-5 h-5"
-        customClass="home-header__icon-btn"
+        customClass="home-header__action-btn"
         @click="closeToTray"
       />
     </div>
