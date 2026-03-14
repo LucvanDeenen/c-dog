@@ -1,9 +1,9 @@
 {
-  "name": "sides",
+  "name": "C-Dog",
   "private": true,
-  "description": "Helps manage projects",
+  "description": "Tool for quickly accessing projects",
   "author": "LucvanDeenen",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "build": {
     "appId": "com.dedeen.sides",
     "directories": {
