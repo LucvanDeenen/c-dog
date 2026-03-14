@@ -65,7 +65,7 @@ function openProject(path: string) {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.1rem 1.25rem 1.25rem;
+  padding: 1.1rem 1.25rem 0;
 }
 
 .projects-panel {

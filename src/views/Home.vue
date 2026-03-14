@@ -38,7 +38,11 @@ const searchQuery = ref("");
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
 const minimizeWindowToTray = () => {
-  if (window.api && (window.api as any).window && typeof (window.api as any).window.minimize === "function") {
+  if (
+    window.api &&
+    (window.api as any).window &&
+    typeof (window.api as any).window.minimize === "function"
+  ) {
     (window.api as any).window.minimize();
   } else if (window.api && (window.api as any).window_minimize) {
     (window.api as any).window_minimize();
@@ -112,19 +116,26 @@ onUnmounted(() => {
 
 <style scoped>
 .home-shell {
-  min-height: 100vh;
+  height: 100%;
   background:
-    radial-gradient(circle at 10% -20%, rgba(30, 64, 175, 0.4) 0%, transparent 35%),
-    radial-gradient(circle at 100% 20%, rgba(15, 23, 42, 0.9) 0%, transparent 30%),
+    radial-gradient(
+      circle at 10% -20%,
+      rgba(30, 64, 175, 0.4) 0%,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 100% 20%,
+      rgba(15, 23, 42, 0.9) 0%,
+      transparent 30%
+    ),
     linear-gradient(135deg, #0f172a, #111827 60%, #0b1220);
 }
 
 .home-frame {
-  height: calc(100vh - 2rem);
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 1rem;
   backdrop-filter: blur(4px);
   background: rgba(2, 6, 23, 0.78);
@@ -135,7 +146,7 @@ onUnmounted(() => {
 }
 
 [data-window-mode="docked"] .home-frame {
-  height: calc(100vh - 1rem);
+  height: 100%;
   border-radius: 0.75rem;
 }
 </style>
