@@ -17,4 +17,8 @@ export class FileSystem {
   async listGitProjects(): Promise<Project[]> {
     return [];
   }
+
+  async openFolder(_projectPath: string): Promise<boolean> {
+    return false;
+  }
 }

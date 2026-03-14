@@ -1,4 +1,5 @@
 import { FileSystem } from "@electron/contracts/interfaces";
+import { shell } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -6,12 +7,22 @@ import os from "node:os";
 export interface Project {
   name: string;
   path: string;
+  branch?: string;
 }
 
 /**
  * {@inheritDoc}
  */
 export default class FileHandler extends FileSystem {
+    async openFolder(projectPath: string): Promise<boolean> {
+      const result = await shell.openPath(projectPath);
+      if (result) {
+        console.error("Failed to open folder:", result);
+        return false;
+      }
+      return true;
+    }
+
     /**
      * Open a given path in the specified editor (default: vscode)
      * @param projectPath The path to open
@@ -61,9 +72,18 @@ export default class FileHandler extends FileSystem {
           const gitPath = path.join(reposPath, entry.name, ".git");
           // Check if .git folder exists
           if (fs.existsSync(gitPath)) {
+            let branch: string | undefined;
+            try {
+              const headContent = fs.readFileSync(path.join(gitPath, "HEAD"), "utf-8").trim();
+              const match = headContent.match(/^ref: refs\/heads\/(.+)$/);
+              branch = match ? match[1] : headContent.slice(0, 7);
+            } catch {
+              branch = undefined;
+            }
             projects.push({
               name: entry.name,
               path: path.join(reposPath, entry.name),
+              branch,
             });
           }
         }

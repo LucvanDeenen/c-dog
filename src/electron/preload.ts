@@ -23,6 +23,7 @@ const api = {
   fs: {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
     openInEditor: (projectPath: string, editor: string = "vscode") => ipcRenderer.invoke('fs.openInEditor', [projectPath, editor]),
+    openFolder: (projectPath: string) => ipcRenderer.invoke('fs.openFolder', [projectPath]),
   },
   window: {
     minimize: () => ipcRenderer.invoke('window.minimize'),

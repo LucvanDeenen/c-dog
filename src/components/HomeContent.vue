@@ -23,7 +23,24 @@
             </svg>
             <div class="project-card__meta">
               <p class="project-card__name">{{ project.name }}</p>
-              <p class="project-card__path">{{ project.path }}</p>
+              <div class="project-card__info-row">
+                <button
+                  class="project-card__path-btn"
+                  title="Open folder"
+                  @click="openFolder($event, project.path)"
+                >
+                  <svg viewBox="0 0 24 24" class="project-card__folder-icon">
+                    <path :d="mdiFolder" fill="currentColor" />
+                  </svg>
+                  <span class="project-card__path">{{ relativePath(project.path) }}</span>
+                </button>
+                <span v-if="project.branch" class="project-card__branch">
+                  <svg class="project-card__branch-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path :d="mdiSourceBranch" fill="currentColor" />
+                  </svg>
+                  {{ project.branch }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -33,12 +50,12 @@
 </template>
 
 <script setup lang="ts">
-import { mdiFileCode } from "@mdi/js";
+import { mdiFileCode, mdiSourceBranch, mdiFolder } from "@mdi/js";
 import { computed } from "vue";
 
 const props = defineProps<{
   windowMode: string;
-  projects: Array<{ name: string; path: string }>;
+  projects: Array<{ name: string; path: string; branch?: string }>;
   loadingProjects: boolean;
   searchQuery: string;
 }>();
@@ -56,6 +73,22 @@ const filteredProjects = computed(() => {
 
 function openProject(path: string) {
   emit("openProject", path);
+}
+
+async function openFolder(event: MouseEvent, projectPath: string) {
+  event.stopPropagation();
+  await (window.api.fs as any).openFolder(projectPath);
+}
+
+function relativePath(fullPath: string): string {
+  // Replace the home directory prefix with ~
+  const home = fullPath.includes("\\") 
+    ? (fullPath.match(/^([A-Za-z]:\\Users\\[^\\]+)/) || [])[1] ?? ""
+    : (fullPath.match(/^\/home\/[^\/]+/) || [])[0] ?? "";
+  if (home && fullPath.startsWith(home)) {
+    return "~" + fullPath.slice(home.length).replace(/\\/g, "/");
+  }
+  return fullPath;
 }
 </script>
 
@@ -123,12 +156,61 @@ function openProject(path: string) {
 }
 
 .project-card__path {
-  margin: 0.15rem 0 0;
   color: #94a3b8;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.project-card__info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+  min-width: 0;
+}
+
+.project-card__path-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #64748b;
+  min-width: 0;
+  overflow: hidden;
+  transition: color 0.15s;
+}
+
+.project-card__path-btn:hover {
+  color: #94a3b8;
+}
+
+.project-card__branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.project-card__branch-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+}
+
+.project-card__folder-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
