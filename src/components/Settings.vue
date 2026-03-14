@@ -1,85 +1,75 @@
 <template>
-  <!-- Modal Backdrop -->
-  <Teleport to="body">
-    <Transition name="fade">
-      <div 
-        v-if="isOpen"
-        class="fixed inset-0 bg-black/50 z-40"
-        @click="closeModal"
-      />
-    </Transition>
-
-    <!-- Modal Dialog -->
-    <Transition name="slide-up">
-      <div 
-        v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      >
-        <div
-          class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-y-auto"
-          @click.stop
-        >
-          <div class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
-            <button
-              @click="closeModal"
-              class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition p-1"
-            >
-              <svg class="w-6 h-6" viewBox="0 0 24 24" :d="mdiClose">
-                <path :d="mdiClose" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="p-6">
-            <!-- Window Mode Setting -->
-            <div>
-              <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
-                Window Mode
-              </h3>
-              <div class="space-y-3">
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    :value="'regular'"
-                    v-model="windowMode"
-                    @change="handleModeChange"
-                    class="w-4 h-4"
-                  />
-                  <div>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">Regular Mode</span>
-                    <span class="text-sm text-gray-500 dark:text-gray-400 block">
-                      Full-size window (1500x1000)
-                    </span>
-                  </div>
-                </label>
-
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    :value="'docked'"
-                    v-model="windowMode"
-                    @change="handleModeChange"
-                    class="w-4 h-4"
-                  />
-                  <div>
-                    <span class="text-gray-700 dark:text-gray-300 font-medium">Docked Mode</span>
-                    <span class="text-sm text-gray-500 dark:text-gray-400 block">
-                      Floating window near tray (400x300)
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              <p v-if="changingMode" class="mt-3 text-sm text-blue-600 dark:text-blue-400">
-                Switching window mode...
-              </p>
-            </div>
-          </div>
+  <div v-if="isOpen" class="settings-overlay" @click.self="closeModal">
+    <div class="settings-modal" @click.stop>
+      <div class="modal-header">
+        <div class="modal-header__title-row">
+          <h2 class="modal-title">Settings</h2>
+          <span v-if="appVersion" class="modal-version">v{{ appVersion }}</span>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+
+      <div class="modal-body">
+        <!-- Window Mode Setting -->
+        <div class="setting-section">
+          <h3 class="section-title">Window Mode</h3>
+          <div class="setting-options">
+            <label class="setting-option">
+              <input
+                type="radio"
+                :value="'regular'"
+                v-model="windowMode"
+                @change="handleModeChange"
+                class="w-4 h-4"
+              />
+              <div>
+                <span class="option-label">Regular Mode</span>
+                <span class="option-desc">Full-size window (1500x1000)</span>
+              </div>
+            </label>
+
+            <label class="setting-option">
+              <input
+                type="radio"
+                :value="'docked'"
+                v-model="windowMode"
+                @change="handleModeChange"
+                class="w-4 h-4"
+              />
+              <div>
+                <span class="option-label">Docked Mode</span>
+                <span class="option-desc"
+                  >Floating window near tray (400x300)</span
+                >
+              </div>
+            </label>
+          </div>
+
+          <p v-if="changingMode" class="switching-note">
+            Switching window mode...
+          </p>
+        </div>
+
+        <!-- Startup Setting -->
+        <div class="setting-section setting-section--bordered">
+          <h3 class="section-title">Startup</h3>
+          <label class="setting-option">
+            <input
+              type="checkbox"
+              v-model="launchAtStartup"
+              @change="handleLaunchAtStartupChange"
+              class="w-4 h-4"
+            />
+            <div>
+              <span class="option-label">Launch at startup</span>
+              <span class="option-desc"
+                >Start minimized to tray when you log in</span
+              >
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -97,6 +87,8 @@ const emit = defineEmits<{
 
 const windowMode = ref<WindowMode>("regular");
 const changingMode = ref(false);
+const launchAtStartup = ref(false);
+const appVersion = ref("");
 let isInitializing = true;
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
@@ -107,11 +99,19 @@ const closeModal = () => {
 
 onMounted(async () => {
   // Fetch current window mode on mount
-  console.log("Initializing Settings.vue, fetching current window mode: ", isInitializing);
+  console.log(
+    "Initializing Settings.vue, fetching current window mode: ",
+    isInitializing,
+  );
   try {
     const settings = await window.api.settings.getSettings();
     windowMode.value = settings.windowMode;
-    console.log("Settings component mounted, loaded window mode:", windowMode.value);
+    launchAtStartup.value = settings.launchAtStartup;
+    appVersion.value = await window.api.settings.getVersion();
+    console.log(
+      "Settings component mounted, loaded window mode:",
+      windowMode.value,
+    );
   } catch (error) {
     console.error("Failed to load settings:", error);
   }
@@ -120,7 +120,10 @@ onMounted(async () => {
 
   // Create a named handler so we can remove it later
   modeChangeHandler = (_event: any, mode: WindowMode) => {
-    console.log("Settings.vue received window:modeChanged event with mode:", mode);
+    console.log(
+      "Settings.vue received window:modeChanged event with mode:",
+      mode,
+    );
     windowMode.value = mode;
     changingMode.value = false;
   };
@@ -144,7 +147,10 @@ const handleModeChange = async () => {
   try {
     // Send IPC message to main process to switch mode
     // The main process will save the setting and recreate the window
-    console.log("Sending window:switchMode IPC message with mode:", windowMode.value);
+    console.log(
+      "Sending window:switchMode IPC message with mode:",
+      windowMode.value,
+    );
     window.ipc.send("window:switchMode", windowMode.value);
     console.log("IPC message sent");
     // Once window recreates, window:modeChanged event will fire and update the UI
@@ -153,27 +159,141 @@ const handleModeChange = async () => {
     changingMode.value = false;
   }
 };
+
+const handleLaunchAtStartupChange = async () => {
+  try {
+    await window.api.settings.setLaunchAtStartup(launchAtStartup.value);
+  } catch (error) {
+    console.error("Failed to update launch at startup:", error);
+    launchAtStartup.value = !launchAtStartup.value;
+  }
+};
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.settings-modal {
+  background: #1e2336;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 28rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  color: #e2e8f0;
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+.modal-header {
+  position: sticky;
+  top: 0;
+  background: #1e2336;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.slide-up-enter-from,
-.slide-up-leave-to {
-  transform: translateY(20px);
-  opacity: 0;
+.modal-header__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.modal-version {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.modal-close-btn:hover {
+  color: #e2e8f0;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.setting-section {
+  padding-bottom: 1.5rem;
+}
+
+.setting-section--bordered {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 1.5rem;
+  padding-bottom: 0;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem;
+}
+
+.setting-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.setting-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.option-label {
+  display: block;
+  font-weight: 500;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.option-desc {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+.switching-note {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #60a5fa;
 }
 </style>

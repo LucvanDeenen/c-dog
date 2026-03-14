@@ -7,6 +7,7 @@
         @update:searchQuery="searchQuery = $event"
         @toggleWindowMode="toggleWindowMode"
         @closeToTray="closeToTray"
+        @openSettings="isSettingsOpen = true"
       />
       <HomeContent
         :windowMode="windowMode"
@@ -16,6 +17,7 @@
         @openProject="openProject"
       />
     </div>
+    <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
   </div>
 </template>
 
@@ -23,6 +25,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import HomeHeader from "@/components/HomeHeader.vue";
 import HomeContent from "@/components/HomeContent.vue";
+import Settings from "@/components/Settings.vue";
 import type { WindowMode } from "@electron/services/settings";
 
 interface Project {
@@ -34,6 +37,7 @@ const windowMode = ref<WindowMode>("regular");
 const projects = ref<Project[]>([]);
 const loadingProjects = ref(true);
 const searchQuery = ref("");
+const isSettingsOpen = ref(false);
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 

@@ -15,6 +15,13 @@
         />
       </label>
       <IconButton
+        :icon="windowMode === 'regular' ? mdiArrowBottomRight : mdiWindowMaximize"
+        :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
+        iconClass="w-5 h-5"
+        customClass="home-header__action-btn"
+        @click="toggleWindowMode"
+      />
+      <IconButton
         :icon="mdiClose"
         iconClass="w-5 h-5"
         customClass="home-header__icon-btn"
@@ -24,21 +31,21 @@
 
     <div class="home-header__actions-row">
       <IconButton
-        :icon="windowMode === 'regular' ? mdiWindowMinimize : mdiWindowMaximize"
-        :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
+        :icon="mdiCog"
+        title="Settings"
         iconClass="w-5 h-5"
-        customClass="home-header__mode-btn"
-        @click="toggleWindowMode"
+        customClass="home-header__action-btn"
+        @click="openSettings"
       />
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { mdiWindowMinimize, mdiWindowMaximize, mdiMagnify, mdiClose } from "@mdi/js";
+import { mdiArrowBottomRight, mdiWindowMaximize, mdiMagnify, mdiClose, mdiCog } from "@mdi/js";
 import IconButton from "@/components/common/IconButton.vue";
 
-const emit = defineEmits(["update:searchQuery", "toggleWindowMode", "closeToTray"]);
+const emit = defineEmits(["update:searchQuery", "toggleWindowMode", "closeToTray", "openSettings"]);
 
 defineProps<{
   windowMode: string;
@@ -51,6 +58,10 @@ function toggleWindowMode() {
 
 function closeToTray() {
   emit("closeToTray");
+}
+
+function openSettings() {
+  emit("openSettings");
 }
 </script>
 
@@ -115,6 +126,27 @@ function closeToTray() {
   border-radius: 0.75rem;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+:deep(.home-header__action-btn) {
+  height: 2.25rem;
+  width: 2.25rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+}
+
+:deep(.home-header__action-btn:hover) {
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
+}
+
+.home-header__actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 :deep(.home-header__icon-btn:hover),

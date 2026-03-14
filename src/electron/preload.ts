@@ -16,6 +16,9 @@ const api = {
     getSettings: () => ipcRenderer.invoke('settings.getSettings', []),
     getWindowMode: () => ipcRenderer.invoke('settings.getWindowMode', []),
     setWindowMode: (mode: string) => ipcRenderer.invoke('settings.setWindowMode', [mode]),
+    getLaunchAtStartup: () => ipcRenderer.invoke('settings.getLaunchAtStartup', []),
+    setLaunchAtStartup: (value: boolean) => ipcRenderer.invoke('settings.setLaunchAtStartup', [value]),
+    getVersion: () => ipcRenderer.invoke('settings.getVersion', []),
   },
   fs: {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),

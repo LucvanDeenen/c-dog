@@ -1,15 +1,32 @@
 import { app } from "electron";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
+
+const STARTUP_REG_KEY = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+function applyWindowsStartup(appName: string, exePath: string, enable: boolean): void {
+  if (!enable) {
+    spawnSync("reg", ["delete", STARTUP_REG_KEY, "/v", appName, "/f"], { windowsHide: true });
+  } else {
+    spawnSync(
+      "reg",
+      ["add", STARTUP_REG_KEY, "/v", appName, "/t", "REG_SZ", "/d", `"${exePath}" --start-minimized`, "/f"],
+      { windowsHide: true }
+    );
+  }
+}
 
 export type WindowMode = "regular" | "docked";
 
 export interface Settings {
   windowMode: WindowMode;
+  launchAtStartup: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   windowMode: "regular",
+  launchAtStartup: false,
 };
 
 export class SettingsManager {
@@ -63,6 +80,18 @@ export class SettingsManager {
   setWindowMode(mode: WindowMode): void {
     this.settings.windowMode = mode;
     this.saveSettings();
+  }
+
+  getLaunchAtStartup(): boolean {
+    return this.settings.launchAtStartup;
+  }
+
+  setLaunchAtStartup(value: boolean): void {
+    this.settings.launchAtStartup = value;
+    this.saveSettings();
+    if (process.platform === "win32" && app.isPackaged) {
+      applyWindowsStartup(app.getName(), app.getPath("exe"), value);
+    }
   }
 
   updateSetting<K extends keyof Settings>(key: K, value: Settings[K]): void {

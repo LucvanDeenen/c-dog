@@ -11,12 +11,6 @@
         <path :d="icon" fill="currentColor" />
       </svg>
     </button>
-    <span
-      v-if="tooltipText"
-      class="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-950 px-2 py-1 text-xs text-slate-100 opacity-0 shadow transition-opacity duration-150 group-hover:opacity-100"
-    >
-      {{ tooltipText }}
-    </span>
   </div>
 </template>
 
@@ -33,3 +27,13 @@ const props = defineProps<{
 
 const tooltipText = computed(() => props.tooltip ?? props.title ?? "");
 </script>
+
+<style scoped>
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+</style>

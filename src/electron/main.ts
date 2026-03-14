@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { getSettingsManager, type WindowMode } from "@electron/services/settings";
@@ -135,17 +136,18 @@ function createWindow() {
     : RENDERER_DIST;
 
   const windowConfig = getWindowConfig(currentWindowMode, process.env.VITE_PUBLIC);
-  win = new BrowserWindow(windowConfig);
+  const startMinimized = process.argv.includes("--start-minimized");
+  win = new BrowserWindow({ ...windowConfig, show: !startMinimized });
 
   // Create system tray
   if (!tray) {
     // Build paths to try, prioritizing PNG/ICO files for Windows compatibility
     const baseDir = path.join(__dirname, "..");
     const possibleIconPaths = [
-      path.join(baseDir, "public", "tray-icon.jpg"),
+      path.join(baseDir, "public", "tray-icon.png"),
       path.join(baseDir, "public", "electron-vite.png"),
       path.join(baseDir, "public", "electron-vite.ico"),
-      path.join(RENDERER_DIST, "tray-icon.jpg"),
+      path.join(RENDERER_DIST, "tray-icon.png"),
       path.join(RENDERER_DIST, "electron-vite.png"),
       path.join(RENDERER_DIST, "electron-vite.ico"),
     ];
@@ -307,6 +309,26 @@ app.whenReady().then(async () => {
   // Load saved window mode preference
   currentWindowMode = getSettingsManager().getWindowMode();
   console.log("Loaded window mode preference:", currentWindowMode);
+
+  // Sync Windows startup registry with stored launch-at-startup preference
+  if (process.platform === "win32" && app.isPackaged) {
+    const launchAtStartup = getSettingsManager().getLaunchAtStartup();
+    const exePath = app.getPath("exe");
+    const appName = app.getName();
+    if (launchAtStartup) {
+      spawnSync(
+        "reg",
+        ["add", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", appName, "/t", "REG_SZ", "/d", `"${exePath}" --start-minimized`, "/f"],
+        { windowsHide: true }
+      );
+    } else {
+      spawnSync(
+        "reg",
+        ["delete", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", appName, "/f"],
+        { windowsHide: true }
+      );
+    }
+  }
 
   // Register IPC listener for window mode changes from renderer
   ipcMain.on("window:switchMode", (_event, newMode: WindowMode) => {
