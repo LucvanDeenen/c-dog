@@ -1,35 +1,6 @@
 <template>
   <header class="home-header">
-    <div class="home-header__search-row">
-      <label class="search-field" for="project-search">
-        <svg class="search-field__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path :d="mdiMagnify" fill="currentColor" />
-        </svg>
-        <input
-          id="project-search"
-          :value="searchQuery"
-          @input="(e: Event) => emit('update:searchQuery', (e.target && (e.target as HTMLInputElement).value) || '')"
-          type="text"
-          placeholder="Search projects..."
-          class="search-field__input"
-        />
-      </label>
-      <IconButton
-        :icon="windowMode === 'regular' ? mdiArrowBottomRight : mdiWindowMaximize"
-        :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
-        iconClass="w-5 h-5"
-        customClass="home-header__action-btn"
-        @click="toggleWindowMode"
-      />
-      <IconButton
-        :icon="mdiClose"
-        iconClass="w-5 h-5"
-        customClass="home-header__action-btn"
-        @click="closeToTray"
-      />
-    </div>
-
-    <div class="home-header__actions-row">
+    <div class="home-header__row">
       <IconButton
         :icon="mdiCog"
         title="Settings"
@@ -37,6 +8,39 @@
         customClass="home-header__action-btn"
         @click="openSettings"
       />
+
+      <div class="home-header__search-area">
+        <label class="search-field" for="project-search">
+          <svg class="search-field__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path :d="mdiMagnify" fill="currentColor" />
+          </svg>
+          <input
+            id="project-search"
+            :value="searchQuery"
+            @input="(e: Event) => emit('update:searchQuery', (e.target && (e.target as HTMLInputElement).value) || '')"
+            type="text"
+            placeholder="Search projects..."
+            class="search-field__input"
+          />
+        </label>
+      </div>
+
+      <div class="home-header__window-controls">
+        <IconButton
+          :icon="windowMode === 'regular' ? mdiArrowBottomRight : mdiWindowMaximize"
+          :title="`Switch to ${windowMode === 'regular' ? 'Docked' : 'Regular'} Mode`"
+          iconClass="w-5 h-5"
+          customClass="home-header__action-btn"
+          @click="toggleWindowMode"
+        />
+        <IconButton
+          :icon="mdiClose"
+          title="Close to tray"
+          iconClass="w-5 h-5"
+          customClass="home-header__action-btn home-header__close-btn"
+          @click="closeToTray"
+        />
+      </div>
     </div>
   </header>
 </template>
@@ -68,30 +72,45 @@ function openSettings() {
 <style scoped>
 .home-header {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
+  padding: 0.875rem 0.75rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.75));
 }
 
-.home-header__search-row {
+.home-header__row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.25rem;
+}
+
+.home-header__search-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 0.25rem;
+}
+
+.home-header__search-area .search-field {
+  width: 100%;
+}
+
+.home-header__window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
 }
 
 .search-field {
   flex: 1;
-  min-height: 2.25rem;
+  min-height: 1.75rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
   border-radius: 0.75rem;
   border: 1px solid rgba(148, 163, 184, 0.3);
   background: rgba(15, 23, 42, 0.65);
+  overflow: hidden;
 }
 
 .search-field:focus-within {
@@ -100,13 +119,15 @@ function openSettings() {
 }
 
 .search-field__icon {
+  flex-shrink: 0;
   width: 1rem;
   height: 1rem;
   color: #94a3b8;
 }
 
 .search-field__input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 0;
   outline: 0;
   background: transparent;
@@ -119,13 +140,42 @@ function openSettings() {
   color: #64748b;
 }
 
-:deep(.home-header__icon-btn),
-:deep(.home-header__mode-btn) {
-  height: 2.75rem;
-  width: 2.75rem;
-  border-radius: 0.75rem;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+.search-close-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.search-close-btn:hover {
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+.search-close-btn svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.search-expand-enter-active,
+.search-expand-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.search-expand-enter-from,
+.search-expand-leave-to {
+  opacity: 0;
+  transform: scaleX(0.85);
+  transform-origin: left center;
 }
 
 :deep(.home-header__action-btn) {
@@ -143,30 +193,8 @@ function openSettings() {
   color: #e2e8f0;
 }
 
-.home-header__actions-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-:deep(.home-header__icon-btn:hover),
-:deep(.home-header__mode-btn:hover) {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: rgba(96, 165, 250, 0.7);
-}
-
-.home-header__actions-row {
-  display: flex;
-  align-items: center;
-}
-
-@media (max-width: 640px) {
-  .home-header {
-    padding: 0.85rem;
-  }
-
-  .home-header__search-row {
-    gap: 0.5rem;
-  }
+:deep(.home-header__close-btn:hover) {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 </style>
