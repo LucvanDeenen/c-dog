@@ -25,17 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Clean previous build output
-        shell: pwsh
-        run: |
-          Remove-Item -Recurse -Force dist, dist-electron, release -ErrorAction SilentlyContinue
+      - name: Generate icons
+        run: npm run build:icons
 
       - name: Build app and Windows installer
-        shell: pwsh
-        run: |
-          npx vue-tsc
-          npx vite build
-          npx electron-builder --win --publish never
+        run: npx vue-tsc && npx vite build && npx electron-builder --win --publish never
 
       - name: Verify installer exists
         shell: pwsh
