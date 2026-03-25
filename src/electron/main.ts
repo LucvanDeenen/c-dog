@@ -88,7 +88,7 @@ ipcMain.handle("window.minimize", () => {
 
 function getWindowConfig(mode: WindowMode, vitePublic: string) {
   const baseConfig = {
-    icon: path.join(vitePublic, "electron-vite.svg"),
+    icon: path.join(vitePublic, "icon.png"),
     webPreferences: {
       preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.mjs"),
     },
@@ -143,12 +143,8 @@ function createWindow() {
     // Build paths to try, prioritizing PNG/ICO files for Windows compatibility
     const baseDir = path.join(__dirname, "..");
     const possibleIconPaths = [
-      path.join(baseDir, "public", "tray-icon.png"),
-      path.join(baseDir, "public", "electron-vite.png"),
-      path.join(baseDir, "public", "electron-vite.ico"),
-      path.join(RENDERER_DIST, "tray-icon.png"),
-      path.join(RENDERER_DIST, "electron-vite.png"),
-      path.join(RENDERER_DIST, "electron-vite.ico"),
+      path.join(baseDir, "public", "icon.png"),
+      path.join(RENDERER_DIST, "icon.png"),
     ];
 
     let iconPath: string | null = null;
