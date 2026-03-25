@@ -1,6 +1,6 @@
 <template>
   <div
-    class="p-4 border border-neutral-700/50 rounded-lg bg-neutral-800 cursor-pointer transition-colors duration-[160ms] hover:border-yellow-500/60 hover:bg-neutral-700/50"
+    class="p-4 border border-neutral-700/50 rounded-lg bg-neutral-800/40 cursor-pointer transition-colors duration-[160ms] hover:border-yellow-500/60 hover:bg-neutral-700/50"
     @click="emit('open', project.path)"
   >
     <div class="flex items-center gap-2">
@@ -15,7 +15,7 @@
             title="Open folder"
             @click.stop="openFolder"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" class="shrink-0">
+            <svg width="20" height="14" viewBox="0 0 24 24" class="shrink-0">
               <path :d="mdiFolder" fill="currentColor" />
             </svg>
             <span class="text-[0.8rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{{ relativePath }}</span>

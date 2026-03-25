@@ -1,6 +1,6 @@
 <template>
   <main class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" :data-window-mode="windowMode">
-    <section class="max-w-[420px] mx-auto w-full p-6">
+    <section class="max-w-[500px] mx-auto w-full p-6">
       <div v-if="loadingProjects" class="py-10 px-4 text-center text-gray-400 text-[0.95rem]">
         Loading projects...
       </div>

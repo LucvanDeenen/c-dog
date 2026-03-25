@@ -100,8 +100,13 @@
   }
 }
 
-/* Docked mode: slightly darker background */
-[data-window-mode="docked"] {
-  background-color: #0f0f0f;
-  padding: 0;
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.drag-region button,
+.drag-region input,
+.drag-region label,
+.drag-region a {
+  -webkit-app-region: no-drag;
 }

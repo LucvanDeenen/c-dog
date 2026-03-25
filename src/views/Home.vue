@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex" :class="{ 'flex-col': windowMode === 'docked' }" :data-window-mode="windowMode">
+  <div class="h-full" :data-window-mode="windowMode">
     <HomeHeader
       :windowMode="windowMode"
       :searchQuery="searchQuery"
