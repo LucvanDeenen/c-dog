@@ -22,11 +22,13 @@ export type WindowMode = "regular" | "docked";
 export interface Settings {
   windowMode: WindowMode;
   launchAtStartup: boolean;
+  repoPaths: string[];
 }
 
 const DEFAULT_SETTINGS: Settings = {
   windowMode: "regular",
   launchAtStartup: false,
+  repoPaths: ["~/repos"],
 };
 
 export class SettingsManager {
@@ -44,6 +46,11 @@ export class SettingsManager {
       if (fs.existsSync(this.settingsPath)) {
         const fileContent = fs.readFileSync(this.settingsPath, "utf-8");
         const parsedSettings = JSON.parse(fileContent);
+        // Migrate old single reposPath string to repoPaths array
+        if (parsedSettings.reposPath && !parsedSettings.repoPaths) {
+          parsedSettings.repoPaths = [parsedSettings.reposPath];
+          delete parsedSettings.reposPath;
+        }
         // Merge with defaults to handle missing keys
         return { ...DEFAULT_SETTINGS, ...parsedSettings };
       }
@@ -84,6 +91,11 @@ export class SettingsManager {
 
   getLaunchAtStartup(): boolean {
     return this.settings.launchAtStartup;
+  }
+
+  setRepoPaths(value: string[]): void {
+    this.settings.repoPaths = value;
+    this.saveSettings();
   }
 
   setLaunchAtStartup(value: boolean): void {

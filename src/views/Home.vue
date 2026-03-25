@@ -1,11 +1,11 @@
 <template>
-  <div class="h-full flex" :class="{ 'flex-col': windowMode === 'docked' }" :data-window-mode="windowMode">
+  <div class="h-full" :data-window-mode="windowMode">
     <HomeHeader
       :windowMode="windowMode"
       :searchQuery="searchQuery"
       @update:searchQuery="searchQuery = $event"
       @toggleWindowMode="toggleWindowMode"
-      @closeToTray="closeToTray"
+      @closeToTray="minimizeWindowToTray"
       @openSettings="isSettingsOpen = true"
     />
     <HomeContent
@@ -16,19 +16,21 @@
       @openProject="openProject"
     />
   </div>
-  <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
+  <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" @paths-changed="loadProjects" />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-import HomeHeader from "@/components/HomeHeader.vue";
-import HomeContent from "@/components/HomeContent.vue";
-import Settings from "@/components/Settings.vue";
 import type { WindowMode } from "@electron/services/settings";
+import HomeHeader from "@/components/home/HomeHeader.vue";
+import HomeContent from "@/components/home/HomeContent.vue";
+import Settings from "@/components/settings/Settings.vue";
 
 interface Project {
   name: string;
   path: string;
+  branch?: string;
+  group: string;
 }
 
 const windowMode = ref<WindowMode>("regular");
@@ -40,41 +42,36 @@ const isSettingsOpen = ref(false);
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
 const minimizeWindowToTray = () => {
-  if (
-    window.api &&
-    (window.api as any).window &&
-    typeof (window.api as any).window.minimize === "function"
-  ) {
-    (window.api as any).window.minimize();
-  } else if (window.api && (window.api as any).window_minimize) {
-    (window.api as any).window_minimize();
-  }
+  (window.api as any).window.minimize();
 };
 
 const toggleWindowMode = async () => {
   const newMode = windowMode.value === "regular" ? "docked" : "regular";
-  console.log("Toggling window mode to:", newMode);
   window.ipc.send("window:switchMode", newMode);
 };
 
+const loadProjects = async () => {
+  loadingProjects.value = true;
+  try {
+    projects.value = await window.api.fs.listGitProjects();
+  } catch (error) {
+    console.error("Failed to load projects:", error);
+  } finally {
+    loadingProjects.value = false;
+  }
+};
+
 const openProject = async (projectPath: string, editor: string = "vscode") => {
-  console.log("Opening project in editor:", editor, projectPath);
   try {
     const result = await window.api.fs.openInEditor(projectPath, editor);
     if (!result) {
-      alert(
-        `Failed to open project in ${editor}. Make sure it is installed and on your PATH.`,
-      );
+      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
     } else {
       minimizeWindowToTray();
     }
   } catch (error) {
     alert(`Error opening project: ${error}`);
   }
-};
-
-const closeToTray = () => {
-  minimizeWindowToTray();
 };
 
 onMounted(async () => {
@@ -87,15 +84,7 @@ onMounted(async () => {
     console.error("Failed to load window mode:", error);
   }
 
-  // Fetch git projects on mount
-  try {
-    projects.value = await window.api.fs.listGitProjects();
-    console.log("Projects loaded:", projects.value);
-  } catch (error) {
-    console.error("Failed to load projects:", error);
-  } finally {
-    loadingProjects.value = false;
-  }
+  loadProjects();
 
   // Create a named handler so we can remove it later
   modeChangeHandler = (_event: any, mode: WindowMode) => {

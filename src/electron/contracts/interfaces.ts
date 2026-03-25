@@ -21,4 +21,8 @@ export class FileSystem {
   async openFolder(_projectPath: string): Promise<boolean> {
     return false;
   }
+
+  async pickDirectory(): Promise<string | null> {
+    return null;
+  }
 }

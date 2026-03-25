@@ -88,7 +88,7 @@ ipcMain.handle("window.minimize", () => {
 
 function getWindowConfig(mode: WindowMode, vitePublic: string) {
   const baseConfig = {
-    icon: path.join(vitePublic, "electron-vite.svg"),
+    icon: path.join(vitePublic, "icon.png"),
     webPreferences: {
       preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.mjs"),
     },
@@ -129,7 +129,6 @@ function createWindow() {
 
   const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
   const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
-  // const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 
   process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
     ? path.join(process.env.APP_ROOT, "public")
@@ -144,12 +143,8 @@ function createWindow() {
     // Build paths to try, prioritizing PNG/ICO files for Windows compatibility
     const baseDir = path.join(__dirname, "..");
     const possibleIconPaths = [
-      path.join(baseDir, "public", "tray-icon.png"),
-      path.join(baseDir, "public", "electron-vite.png"),
-      path.join(baseDir, "public", "electron-vite.ico"),
-      path.join(RENDERER_DIST, "tray-icon.png"),
-      path.join(RENDERER_DIST, "electron-vite.png"),
-      path.join(RENDERER_DIST, "electron-vite.ico"),
+      path.join(baseDir, "public", "icon.png"),
+      path.join(RENDERER_DIST, "icon.png"),
     ];
 
     let iconPath: string | null = null;
@@ -235,7 +230,6 @@ function createWindow() {
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
-    // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }

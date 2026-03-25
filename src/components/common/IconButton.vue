@@ -1,13 +1,13 @@
 <template>
   <div class="group relative inline-flex">
     <button
-      :class="['icon-button', customClass]"
+      :class="['inline-flex items-center justify-center cursor-pointer p-0 border-0 bg-transparent', customClass]"
       :title="tooltipText"
       :aria-label="tooltipText"
       @click="$emit('click', $event)"
       type="button"
     >
-      <svg :class="iconClass" viewBox="0 0 24 24">
+      <svg width="20" height="20" viewBox="0 0 24 24">
         <path :d="icon" fill="currentColor" />
       </svg>
     </button>
@@ -21,19 +21,8 @@ const props = defineProps<{
   icon: string;
   title?: string;
   tooltip?: string;
-  iconClass?: string;
   customClass?: string;
 }>();
 
 const tooltipText = computed(() => props.tooltip ?? props.title ?? "");
 </script>
-
-<style scoped>
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-</style>
