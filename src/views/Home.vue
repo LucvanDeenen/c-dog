@@ -1,24 +1,22 @@
 <template>
-  <div class="home-shell" :data-window-mode="windowMode">
-    <div class="home-frame">
-      <HomeHeader
-        :windowMode="windowMode"
-        :searchQuery="searchQuery"
-        @update:searchQuery="searchQuery = $event"
-        @toggleWindowMode="toggleWindowMode"
-        @closeToTray="closeToTray"
-        @openSettings="isSettingsOpen = true"
-      />
-      <HomeContent
-        :windowMode="windowMode"
-        :projects="projects"
-        :loadingProjects="loadingProjects"
-        :searchQuery="searchQuery"
-        @openProject="openProject"
-      />
-    </div>
-    <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
+  <div class="h-full flex" :class="{ 'flex-col': windowMode === 'docked' }" :data-window-mode="windowMode">
+    <HomeHeader
+      :windowMode="windowMode"
+      :searchQuery="searchQuery"
+      @update:searchQuery="searchQuery = $event"
+      @toggleWindowMode="toggleWindowMode"
+      @closeToTray="closeToTray"
+      @openSettings="isSettingsOpen = true"
+    />
+    <HomeContent
+      :windowMode="windowMode"
+      :projects="projects"
+      :loadingProjects="loadingProjects"
+      :searchQuery="searchQuery"
+      @openProject="openProject"
+    />
   </div>
+  <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
 </template>
 
 <script setup lang="ts">
@@ -117,40 +115,3 @@ onUnmounted(() => {
   }
 });
 </script>
-
-<style scoped>
-.home-shell {
-  height: 100%;
-  background:
-    radial-gradient(
-      circle at 10% -20%,
-      rgba(30, 64, 175, 0.4) 0%,
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 100% 20%,
-      rgba(15, 23, 42, 0.9) 0%,
-      transparent 30%
-    ),
-    linear-gradient(135deg, #0f172a, #111827 60%, #0b1220);
-}
-
-.home-frame {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 1rem;
-  backdrop-filter: blur(4px);
-  background: rgba(2, 6, 23, 0.78);
-}
-
-[data-window-mode="docked"] .home-shell {
-  padding: 0.5rem;
-}
-
-[data-window-mode="docked"] .home-frame {
-  height: 100%;
-  border-radius: 0.75rem;
-}
-</style>

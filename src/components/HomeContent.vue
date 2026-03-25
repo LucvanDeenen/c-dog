@@ -118,11 +118,12 @@ function relativePath(fullPath: string): string {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.1rem 1.25rem 0;
 }
 
 .projects-panel {
+  max-width: 420px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .projects-sections {
@@ -148,21 +149,22 @@ function relativePath(fullPath: string): string {
 }
 
 .projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .project-card {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(100, 116, 139, 0.35);
-  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+  border-radius: 0.5rem;
+  background: rgba(15, 23, 42, 0.4);
+  transition: border-color 0.16s ease, background 0.16s ease;
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(96, 165, 250, 0.8);
-  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.18);
+  border-color: rgba(96, 165, 250, 0.6);
+  background: rgba(30, 41, 59, 0.6);
   cursor: pointer;
 }
 
@@ -248,9 +250,4 @@ function relativePath(fullPath: string): string {
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
-  .projects-grid {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
