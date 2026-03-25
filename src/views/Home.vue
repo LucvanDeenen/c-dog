@@ -5,7 +5,7 @@
       :searchQuery="searchQuery"
       @update:searchQuery="searchQuery = $event"
       @toggleWindowMode="toggleWindowMode"
-      @closeToTray="closeToTray"
+      @closeToTray="minimizeWindowToTray"
       @openSettings="isSettingsOpen = true"
     />
     <HomeContent
@@ -21,10 +21,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-import HomeHeader from "@/components/HomeHeader.vue";
-import HomeContent from "@/components/HomeContent.vue";
-import Settings from "@/components/Settings.vue";
 import type { WindowMode } from "@electron/services/settings";
+import HomeHeader from "@/components/home/HomeHeader.vue";
+import HomeContent from "@/components/home/HomeContent.vue";
+import Settings from "@/components/settings/Settings.vue";
 
 interface Project {
   name: string;
@@ -40,41 +40,25 @@ const isSettingsOpen = ref(false);
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
 const minimizeWindowToTray = () => {
-  if (
-    window.api &&
-    (window.api as any).window &&
-    typeof (window.api as any).window.minimize === "function"
-  ) {
-    (window.api as any).window.minimize();
-  } else if (window.api && (window.api as any).window_minimize) {
-    (window.api as any).window_minimize();
-  }
+  (window.api as any).window.minimize();
 };
 
 const toggleWindowMode = async () => {
   const newMode = windowMode.value === "regular" ? "docked" : "regular";
-  console.log("Toggling window mode to:", newMode);
   window.ipc.send("window:switchMode", newMode);
 };
 
 const openProject = async (projectPath: string, editor: string = "vscode") => {
-  console.log("Opening project in editor:", editor, projectPath);
   try {
     const result = await window.api.fs.openInEditor(projectPath, editor);
     if (!result) {
-      alert(
-        `Failed to open project in ${editor}. Make sure it is installed and on your PATH.`,
-      );
+      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
     } else {
       minimizeWindowToTray();
     }
   } catch (error) {
     alert(`Error opening project: ${error}`);
   }
-};
-
-const closeToTray = () => {
-  minimizeWindowToTray();
 };
 
 onMounted(async () => {

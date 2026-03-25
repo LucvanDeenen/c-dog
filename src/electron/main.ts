@@ -129,7 +129,6 @@ function createWindow() {
 
   const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
   const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
-  // const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 
   process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
     ? path.join(process.env.APP_ROOT, "public")
@@ -235,7 +234,6 @@ function createWindow() {
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
-    // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
 }
