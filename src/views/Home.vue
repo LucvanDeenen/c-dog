@@ -16,7 +16,7 @@
       @openProject="openProject"
     />
   </div>
-  <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" />
+  <Settings :isOpen="isSettingsOpen" @close="isSettingsOpen = false" @paths-changed="loadProjects" />
 </template>
 
 <script setup lang="ts">
@@ -29,6 +29,8 @@ import Settings from "@/components/settings/Settings.vue";
 interface Project {
   name: string;
   path: string;
+  branch?: string;
+  group: string;
 }
 
 const windowMode = ref<WindowMode>("regular");
@@ -46,6 +48,17 @@ const minimizeWindowToTray = () => {
 const toggleWindowMode = async () => {
   const newMode = windowMode.value === "regular" ? "docked" : "regular";
   window.ipc.send("window:switchMode", newMode);
+};
+
+const loadProjects = async () => {
+  loadingProjects.value = true;
+  try {
+    projects.value = await window.api.fs.listGitProjects();
+  } catch (error) {
+    console.error("Failed to load projects:", error);
+  } finally {
+    loadingProjects.value = false;
+  }
 };
 
 const openProject = async (projectPath: string, editor: string = "vscode") => {
@@ -71,15 +84,7 @@ onMounted(async () => {
     console.error("Failed to load window mode:", error);
   }
 
-  // Fetch git projects on mount
-  try {
-    projects.value = await window.api.fs.listGitProjects();
-    console.log("Projects loaded:", projects.value);
-  } catch (error) {
-    console.error("Failed to load projects:", error);
-  } finally {
-    loadingProjects.value = false;
-  }
+  loadProjects();
 
   // Create a named handler so we can remove it later
   modeChangeHandler = (_event: any, mode: WindowMode) => {

@@ -1,5 +1,5 @@
 import { FileSystem } from "@electron/contracts/interfaces";
-import { shell } from "electron";
+import { shell, dialog, BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -15,6 +15,14 @@ export interface Project {
  * {@inheritDoc}
  */
 export default class FileHandler extends FileSystem {
+    async pickDirectory(): Promise<string | null> {
+      const focusedWindow = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+      const result = await dialog.showOpenDialog(focusedWindow, {
+        properties: ["openDirectory"],
+      });
+      return result.canceled ? null : result.filePaths[0].replace(/\\/g, "/");
+    }
+
     async openFolder(projectPath: string): Promise<boolean> {
       const result = await shell.openPath(projectPath);
       if (result) {
@@ -92,44 +100,52 @@ export default class FileHandler extends FileSystem {
    */
   async listGitProjects(): Promise<Project[]> {
     try {
-      const reposPath = path.join(os.homedir(), "repos");
-
-      if (!fs.existsSync(reposPath)) {
-        console.log("Repos directory does not exist:", reposPath);
-        return [];
-      }
+      const { getSettingsManager } = await import("@electron/services/settings");
+      const rawRepoPaths = getSettingsManager().getSettings().repoPaths;
 
       const projects: Project[] = [];
-      let rootEntries: fs.Dirent[];
-      try {
-        rootEntries = fs.readdirSync(reposPath, { withFileTypes: true });
-      } catch {
-        return [];
-      }
 
-      for (const entry of rootEntries) {
-        if (!entry.isDirectory()) continue;
-        const fullPath = path.join(reposPath, entry.name);
-        if (fs.existsSync(path.join(fullPath, ".git"))) {
-          // Direct repo in ~/repos → group "repos"
-          let branch: string | undefined;
-          try {
-            const headContent = fs.readFileSync(path.join(fullPath, ".git", "HEAD"), "utf-8").trim();
-            const match = headContent.match(/^ref: refs\/heads\/(.+)$/);
-            branch = match ? match[1] : headContent.slice(0, 7);
-          } catch {
-            branch = undefined;
+      for (const rawPath of rawRepoPaths) {
+        const reposPath = rawPath.startsWith("~")
+          ? path.join(os.homedir(), rawPath.slice(1))
+          : rawPath;
+
+        if (!fs.existsSync(reposPath)) {
+          console.log("Repos directory does not exist:", reposPath);
+          continue;
+        }
+
+        let rootEntries: fs.Dirent[];
+        try {
+          rootEntries = fs.readdirSync(reposPath, { withFileTypes: true });
+        } catch {
+          continue;
+        }
+
+        const rootGroup = path.basename(reposPath);
+
+        for (const entry of rootEntries) {
+          if (!entry.isDirectory()) continue;
+          const fullPath = path.join(reposPath, entry.name);
+          if (fs.existsSync(path.join(fullPath, ".git"))) {
+            let branch: string | undefined;
+            try {
+              const headContent = fs.readFileSync(path.join(fullPath, ".git", "HEAD"), "utf-8").trim();
+              const match = headContent.match(/^ref: refs\/heads\/(.+)$/);
+              branch = match ? match[1] : headContent.slice(0, 7);
+            } catch {
+              branch = undefined;
+            }
+            projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup });
+          } else {
+            this.scanForGitProjects(fullPath, projects, entry.name);
           }
-          projects.push({ name: entry.name, path: fullPath, branch, group: "repos" });
-        } else {
-          // Subfolder (e.g. workspace) — recurse with its name as the group
-          this.scanForGitProjects(fullPath, projects, entry.name);
         }
       }
 
       projects.sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name));
 
-      console.log(`Found ${projects.length} git projects in ~/repos`);
+      console.log(`Found ${projects.length} git projects across ${rawRepoPaths.length} path(s)`);
       return projects;
     } catch (error) {
       console.error("Error listing git projects:", error);

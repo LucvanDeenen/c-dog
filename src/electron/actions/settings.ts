@@ -1,5 +1,9 @@
 import { app } from "electron";
-import { getSettingsManager, type WindowMode, type Settings } from "@electron/services/settings";
+import {
+  getSettingsManager,
+  type WindowMode,
+  type Settings,
+} from "@electron/services/settings";
 
 export class SettingsHandler {
   getSettings(): Settings {
@@ -7,7 +11,7 @@ export class SettingsHandler {
   }
 
   getVersion(): string {
-    return app.getVersion();
+    return app.isPackaged ? app.getVersion() : `${app.getVersion()}-dev`;
   }
 
   getWindowMode(): WindowMode {
@@ -24,5 +28,9 @@ export class SettingsHandler {
 
   setLaunchAtStartup(value: boolean): void {
     getSettingsManager().setLaunchAtStartup(value);
+  }
+
+  setRepoPaths(value: string[]): void {
+    getSettingsManager().setRepoPaths(value);
   }
 }

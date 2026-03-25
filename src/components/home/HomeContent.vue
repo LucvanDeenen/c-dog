@@ -5,7 +5,7 @@
         Loading projects...
       </div>
       <div v-else-if="projects.length === 0" class="py-10 px-4 text-center text-gray-400 text-[0.95rem]">
-        No git projects found in ~/repos
+        No git projects found
       </div>
       <div v-else-if="filteredProjects.length === 0" class="py-10 px-4 text-center text-gray-400 text-[0.95rem]">
         No projects match your search

@@ -45,12 +45,10 @@ const emit = defineEmits<{
 }>();
 
 const relativePath = computed(() => {
-  const p = props.project.path;
-  const home = p.includes("\\")
-    ? (p.match(/^([A-Za-z]:\\Users\\[^\\]+)/) || [])[1] ?? ""
-    : (p.match(/^\/home\/[^\/]+/) || [])[0] ?? "";
+  const p = props.project.path.replace(/\\/g, "/");
+  const home = (p.match(/^[A-Za-z]:\/Users\/[^/]+/) ?? p.match(/^\/home\/[^/]+/))?.[0] ?? "";
   if (home && p.startsWith(home)) {
-    return "~" + p.slice(home.length).replace(/\\/g, "/");
+    return "~" + p.slice(home.length);
   }
   return p;
 });
