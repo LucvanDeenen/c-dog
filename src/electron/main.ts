@@ -11,6 +11,16 @@ const __dirname = path.dirname(__filename);
 const userDataPath = path.join(__dirname, "..", "..", ".c-dog-cache");
 app.setPath("userData", userDataPath);
 
+// Enforce single instance — if another instance is already running, focus it and quit this one
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+}
+
+app.on("second-instance", () => {
+  showMainWindow();
+});
+
 let win: BrowserWindow | null;
 let tray: Tray | null = null;
 let isQuitting = false;
