@@ -28,13 +28,10 @@ const EDITOR_COMMAND_MAP: Record<string, string> = Object.fromEntries(
 
 const JETBRAINS_IDS = ["webstorm", "idea", "goland", "pycharm", "clion", "rider"];
 
-function detectEditorHint(projectPath: string): { hint?: string; explicit: boolean } {
+function detectEditorHint(projectPath: string, projectEditors: Record<string, string>): { hint?: string; explicit: boolean } {
   // Stored preference takes highest priority
-  try {
-    const { getSettingsManager } = require("@electron/services/settings");
-    const stored = getSettingsManager().getProjectEditor(projectPath);
-    if (stored) return { hint: stored, explicit: true };
-  } catch { /* ignore */ }
+  const stored = projectEditors[projectPath];
+  if (stored) return { hint: stored, explicit: true };
 
   // Auto-detect from workspace markers
   try {
@@ -206,7 +203,7 @@ export default class FileHandler extends FileSystem {
    * Recursively scan a directory for git repositories (folders containing .git).
    * Stops descending into a directory once a .git folder is found.
    */
-  private scanForGitProjects(dir: string, projects: Project[], group: string): void {
+  private scanForGitProjects(dir: string, projects: Project[], group: string, projectEditors: Record<string, string>): void {
     let entries: fs.Dirent[];
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -228,11 +225,11 @@ export default class FileHandler extends FileSystem {
         } catch {
           branch = undefined;
         }
-        const { hint, explicit } = detectEditorHint(fullPath);
+        const { hint, explicit } = detectEditorHint(fullPath, projectEditors);
         projects.push({ name: entry.name, path: fullPath, branch, group, editorHint: hint, editorExplicit: explicit });
       } else {
         // Not a git repo itself — recurse into it, group stays the same
-        this.scanForGitProjects(fullPath, projects, group);
+        this.scanForGitProjects(fullPath, projects, group, projectEditors);
       }
     }
   }
@@ -245,7 +242,9 @@ export default class FileHandler extends FileSystem {
   async listGitProjects(): Promise<Project[]> {
     try {
       const { getSettingsManager } = await import("@electron/services/settings");
-      const rawRepoPaths = getSettingsManager().getSettings().repoPaths;
+      const settings = getSettingsManager().getSettings();
+      const rawRepoPaths = settings.repoPaths;
+      const projectEditors = settings.projectEditors;
 
       const projects: Project[] = [];
 
@@ -280,10 +279,10 @@ export default class FileHandler extends FileSystem {
             } catch {
               branch = undefined;
             }
-            const { hint, explicit } = detectEditorHint(fullPath);
+            const { hint, explicit } = detectEditorHint(fullPath, projectEditors);
             projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup, editorHint: hint, editorExplicit: explicit });
           } else {
-            this.scanForGitProjects(fullPath, projects, entry.name);
+            this.scanForGitProjects(fullPath, projects, entry.name, projectEditors);
           }
         }
       }
