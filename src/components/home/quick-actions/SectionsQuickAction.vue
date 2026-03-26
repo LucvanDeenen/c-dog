@@ -45,7 +45,7 @@
 import { ref } from "vue";
 import { mdiLayers, mdiEye, mdiEyeOff } from "@mdi/js";
 
-const props = defineProps<{
+defineProps<{
   groups?: string[];
 }>();
 

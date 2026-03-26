@@ -29,7 +29,7 @@ import { ref, onMounted } from "vue";
 import EditorPicker from "@/components/common/EditorPicker.vue";
 import { type EditorInfo, editorIcon } from "@/util/editors";
 
-const props = defineProps<{
+defineProps<{
   preferredEditor: string;
 }>();
 

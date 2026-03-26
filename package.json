@@ -3,7 +3,7 @@
   "private": true,
   "description": "Tool for quickly accessing projects",
   "author": "LucvanDeenen",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "build": {
     "appId": "com.dedeen.shelf",
     "productName": "Shelf",
