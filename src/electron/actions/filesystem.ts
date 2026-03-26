@@ -83,6 +83,27 @@ export default class FileHandler extends FileSystem {
       return result.canceled ? null : result.filePaths[0].replace(/\\/g, "/");
     }
 
+    async openRepository(projectPath: string): Promise<boolean> {
+      try {
+        const configPath = path.join(projectPath, ".git", "config");
+        const config = fs.readFileSync(configPath, "utf-8");
+        const match = config.match(/\[remote\s+"origin"\][^\[]*url\s*=\s*(.+)/);
+        if (!match) return false;
+
+        let url = match[1].trim();
+        // Convert SSH to HTTPS: git@github.com:user/repo.git → https://github.com/user/repo
+        url = url.replace(/^git@([^:]+):(.+)$/, "https://$1/$2");
+        // Strip trailing .git
+        url = url.replace(/\.git$/, "");
+
+        await shell.openExternal(url);
+        return true;
+      } catch (error) {
+        console.error("Failed to open repository:", error);
+        return false;
+      }
+    }
+
     async openFolder(projectPath: string): Promise<boolean> {
       const result = await shell.openPath(projectPath);
       if (result) {

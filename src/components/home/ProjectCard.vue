@@ -3,101 +3,69 @@
     class="p-4 border border-neutral-700/50 rounded-lg bg-neutral-800/40 cursor-pointer transition-colors duration-[160ms] hover:border-yellow-500/60 hover:bg-neutral-700/50"
     @click="emit('open', project.path, editorHint)"
   >
-    <div class="flex items-center gap-2">
-      <div class="min-w-0 w-full">
-        <div class="flex justify-between items">
-          <IconLabel :icon="mdiFileCode" icon-class="text-yellow-500">
-            <p class="m-0 text-white text-sm font-semibold">
-              {{ project.name }}
-            </p>
-          </IconLabel>
-          <div class="flex items-center gap-2 shrink-0">
-            <!-- Editor icon badge / picker trigger -->
-            <div class="relative" @click.stop>
-              <button
-                type="button"
-                :title="badgeTitle"
-                :class="[
-                  'h-6 w-6 inline-flex items-center justify-center rounded border transition-colors duration-150 cursor-pointer',
-                  editorExplicit
-                    ? 'border-teal-500/50 bg-teal-900/40 text-teal-300 hover:bg-teal-900/60'
-                    : editorHint
-                      ? 'border-transparent bg-neutral-700/40 text-gray-500 hover:bg-neutral-700/70 hover:text-gray-300'
-                      : 'border-dashed border-neutral-700/60 text-neutral-600 hover:border-neutral-500 hover:text-gray-400',
-                ]"
-                @click="openPicker"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                  <path :d="currentIcon" fill="currentColor" />
-                </svg>
-              </button>
-
-              <!-- Dropdown -->
-              <div
-                v-if="showPicker"
-                class="absolute right-0 top-full mt-1 z-50 min-w-[11rem] bg-neutral-900 border border-neutral-700/60 rounded-lg shadow-xl overflow-hidden"
-              >
-                <div v-if="loadingEditors" class="px-3 py-2 text-[0.8rem] text-gray-500">
-                  Loading…
-                </div>
-                <template v-else>
-                  <button
-                    v-for="editor in availableEditors"
-                    :key="editor.id"
-                    type="button"
-                    :class="[
-                      'w-full flex items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] transition-colors duration-100 cursor-pointer',
-                      editorHint === editor.id && editorExplicit
-                        ? 'bg-teal-900/40 text-teal-300'
-                        : 'text-gray-300 hover:bg-neutral-700/60',
-                    ]"
-                    @click="setEditor(editor.id)"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" class="shrink-0">
-                      <path :d="editorIcon(editor.id)" fill="currentColor" />
-                    </svg>
-                    {{ editor.name }}
-                    <svg v-if="editorHint === editor.id && editorExplicit" width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" class="ml-auto shrink-0">
-                      <path :d="mdiCheck" fill="currentColor" />
-                    </svg>
-                  </button>
-                  <div v-if="editorExplicit" class="border-t border-neutral-700/50">
-                    <button
-                      type="button"
-                      class="w-full flex items-center gap-2.5 px-3 py-2 text-left text-[0.82rem] text-gray-500 hover:bg-neutral-700/60 hover:text-gray-300 transition-colors duration-100 cursor-pointer"
-                      @click="clearEditor"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" class="shrink-0">
-                        <path :d="mdiClose" fill="currentColor" />
-                      </svg>
-                      Reset to auto-detect
-                    </button>
-                  </div>
-                </template>
-              </div>
-            </div>
-
-            <IconLabel
-              v-if="project.branch"
-              :icon="mdiSourceBranch"
-              class="text-[0.8rem] text-gray-500 whitespace-nowrap"
+    <div class="min-w-0 w-full">
+      <div class="flex justify-between items-center gap-2">
+        <!-- Editor icon (picker trigger) + project name -->
+        <div class="flex items-center gap-[0.3rem] min-w-0" @click.stop>
+          <div class="relative shrink-0">
+            <button
+              type="button"
+              :title="badgeTitle"
+              :class="[
+                'h-5 w-5 inline-flex items-center justify-center rounded border transition-colors duration-150 cursor-pointer',
+                editorExplicit
+                  ? 'border-yellow-500/60 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20'
+                  : editorHint
+                    ? 'border-yellow-500/30 bg-yellow-500/5 text-yellow-500/60 hover:bg-yellow-500/10 hover:text-yellow-400'
+                    : 'border-dashed border-neutral-600/50 text-neutral-600 hover:border-yellow-500/30 hover:text-yellow-500/50',
+              ]"
+              @click="openPicker"
             >
-              {{ project.branch }}
-            </IconLabel>
+              <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+                <path :d="currentIcon" fill="currentColor" />
+              </svg>
+            </button>
+
+            <EditorPicker
+              v-if="showPicker"
+              :editors="availableEditors"
+              :selected-id="editorHint"
+              :explicit="editorExplicit"
+              :loading="loadingEditors"
+              @select="setEditor"
+              @clear="clearEditor"
+            />
           </div>
+
+          <p class="m-0 text-white text-sm font-semibold truncate" @click.stop="emit('open', project.path, editorHint)">
+            {{ project.name }}
+          </p>
         </div>
-        <div class="flex items-center gap-2 mt-[0.1rem] min-w-0">
-          <IconLabel
-            :icon="mdiFolder"
-            :clickable="true"
-            :tooltip="relativePath"
-            class="text-[0.8rem] font-bold text-gray-500 min-w-0 overflow-hidden transition-colors duration-150 hover:text-gray-300"
-            title="Open folder"
-            @click.stop="openFolder"
-          >
-            {{ relativePath }}
-          </IconLabel>
-        </div>
+
+        <!-- Branch -->
+        <IconLabel
+          v-if="project.branch"
+          :icon="mdiSourceBranch"
+          :clickable="true"
+          title="Open repository"
+          class="text-[0.8rem] text-gray-500 whitespace-nowrap shrink-0 transition-colors duration-150 hover:text-gray-300"
+          @click.stop="openRepository"
+        >
+          {{ project.branch }}
+        </IconLabel>
+      </div>
+
+      <div class="flex items-center gap-2 mt-[0.1rem] min-w-0">
+        <IconLabel
+          :icon="mdiFolder"
+          :clickable="true"
+          :tooltip="relativePath"
+          class="text-[0.8rem] font-bold text-gray-500 min-w-0 overflow-hidden transition-colors duration-150 hover:text-gray-300"
+          title="Open folder"
+          @click.stop="openFolder"
+        >
+          {{ relativePath }}
+        </IconLabel>
       </div>
     </div>
   </div>
@@ -108,31 +76,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  mdiFileCode, mdiSourceBranch, mdiFolder, mdiCheck, mdiClose, mdiCodeBraces,
-  mdiMicrosoftVisualStudioCode, mdiCursorDefault, mdiLanguageJavascript,
-  mdiLanguageCsharp, mdiLanguageJava, mdiLanguageGo, mdiLanguagePython,
-  mdiNoteText, mdiBolt,
-} from "@mdi/js";
+import { mdiSourceBranch, mdiFolder } from "@mdi/js";
 import IconLabel from "@/components/common/IconLabel.vue";
-
-interface EditorInfo { id: string; name: string }
-
-const EDITOR_ICONS: Record<string, string> = {
-  vscode:   mdiMicrosoftVisualStudioCode,
-  cursor:   mdiCursorDefault,
-  webstorm: mdiLanguageJavascript,
-  rider:    mdiLanguageCsharp,
-  idea:     mdiLanguageJava,
-  goland:   mdiLanguageGo,
-  pycharm:  mdiLanguagePython,
-  sublime:  mdiNoteText,
-  zed:      mdiBolt,
-};
-
-function editorIcon(id: string): string {
-  return EDITOR_ICONS[id] ?? mdiCodeBraces;
-}
+import EditorPicker from "@/components/common/EditorPicker.vue";
+import { type EditorInfo, editorIcon } from "@/util/editors";
 
 const props = defineProps<{
   project: { name: string; path: string; branch?: string; group: string; editorHint?: string; editorExplicit?: boolean };
@@ -189,5 +136,9 @@ async function clearEditor() {
 
 async function openFolder() {
   await (window.api.fs as any).openFolder(props.project.path);
+}
+
+async function openRepository() {
+  await (window.api.fs as any).openRepository(props.project.path);
 }
 </script>

@@ -31,6 +31,7 @@ const api = {
     openTerminal: (cwd?: string) => ipcRenderer.invoke('fs.openTerminal', [cwd]),
     openInEditor: (projectPath: string, editorHint?: string) => ipcRenderer.invoke('fs.openInEditor', [projectPath, editorHint]),
     openFolder: (projectPath: string) => ipcRenderer.invoke('fs.openFolder', [projectPath]),
+    openRepository: (projectPath: string) => ipcRenderer.invoke('fs.openRepository', [projectPath]),
   },
   window: {
     minimize: () => ipcRenderer.invoke('window.minimize'),
