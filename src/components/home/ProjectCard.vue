@@ -122,14 +122,14 @@ async function openPicker() {
 }
 
 async function setEditor(id: string) {
-  await window.api.fs.setProjectEditor(props.project.path, id);
+  await (window.api.settings as any).setProjectEditor(props.project.path, id);
   editorHint.value = id;
   editorExplicit.value = true;
   showPicker.value = false;
 }
 
 async function clearEditor() {
-  await window.api.fs.setProjectEditor(props.project.path, null);
+  await (window.api.settings as any).setProjectEditor(props.project.path, null);
   editorExplicit.value = false;
   showPicker.value = false;
 }

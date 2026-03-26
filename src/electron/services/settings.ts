@@ -24,6 +24,7 @@ export interface Settings {
   launchAtStartup: boolean;
   repoPaths: string[];
   preferredEditor: string;
+  projectEditors: Record<string, string>;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -31,6 +32,7 @@ const DEFAULT_SETTINGS: Settings = {
   launchAtStartup: false,
   repoPaths: ["~/repos"],
   preferredEditor: "vscode",
+  projectEditors: {},
 };
 
 export class SettingsManager {
@@ -102,6 +104,19 @@ export class SettingsManager {
 
   setPreferredEditor(id: string): void {
     this.settings.preferredEditor = id;
+    this.saveSettings();
+  }
+
+  getProjectEditor(projectPath: string): string | undefined {
+    return this.settings.projectEditors[projectPath];
+  }
+
+  setProjectEditor(projectPath: string, editorId: string | null): void {
+    if (editorId === null) {
+      delete this.settings.projectEditors[projectPath];
+    } else {
+      this.settings.projectEditors[projectPath] = editorId;
+    }
     this.saveSettings();
   }
 

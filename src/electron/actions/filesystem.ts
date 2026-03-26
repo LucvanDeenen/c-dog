@@ -29,13 +29,11 @@ const EDITOR_COMMAND_MAP: Record<string, string> = Object.fromEntries(
 const JETBRAINS_IDS = ["webstorm", "idea", "goland", "pycharm", "clion", "rider"];
 
 function detectEditorHint(projectPath: string): { hint?: string; explicit: boolean } {
-  // .shelf file takes highest priority
+  // Stored preference takes highest priority
   try {
-    const shelfPath = path.join(projectPath, ".shelf");
-    if (fs.existsSync(shelfPath)) {
-      const config = JSON.parse(fs.readFileSync(shelfPath, "utf-8"));
-      if (config.editor) return { hint: config.editor, explicit: true };
-    }
+    const { getSettingsManager } = require("@electron/services/settings");
+    const stored = getSettingsManager().getProjectEditor(projectPath);
+    if (stored) return { hint: stored, explicit: true };
   } catch { /* ignore */ }
 
   // Auto-detect from workspace markers
@@ -167,15 +165,6 @@ export default class FileHandler extends FileSystem {
       } catch (error) {
         console.error("Error opening editor:", error);
         return false;
-      }
-    }
-
-    async setProjectEditor(projectPath: string, editorId: string | null): Promise<void> {
-      const shelfPath = path.join(projectPath, ".shelf");
-      if (editorId === null) {
-        if (fs.existsSync(shelfPath)) fs.unlinkSync(shelfPath);
-      } else {
-        fs.writeFileSync(shelfPath, JSON.stringify({ editor: editorId }, null, 2));
       }
     }
 

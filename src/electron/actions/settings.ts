@@ -37,4 +37,8 @@ export class SettingsHandler {
   setPreferredEditor(id: string): void {
     getSettingsManager().setPreferredEditor(id);
   }
+
+  setProjectEditor(projectPath: string, editorId: string | null): void {
+    getSettingsManager().setProjectEditor(projectPath, editorId);
+  }
 }
