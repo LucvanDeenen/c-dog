@@ -4,28 +4,32 @@
     @click="emit('open', project.path)"
   >
     <div class="flex items-center gap-2">
-      <svg width="18" height="18" viewBox="0 0 24 24" class="text-yellow-500 shrink-0" aria-hidden="true">
-        <path :d="mdiFileCode" fill="currentColor" />
-      </svg>
-      <div class="min-w-0">
-        <p class="m-0 text-white text-sm font-semibold">{{ project.name }}</p>
+      <div class="min-w-0 w-full">
+        <div class="flex justify-between items">
+          <IconLabel :icon="mdiFileCode" icon-class="text-yellow-500">
+            <p class="m-0 text-white text-sm font-semibold">
+              {{ project.name }}
+            </p>
+          </IconLabel>
+          <IconLabel
+            v-if="project.branch"
+            :icon="mdiSourceBranch"
+            class="text-[0.8rem] text-gray-500 whitespace-nowrap shrink-0"
+          >
+            {{ project.branch }}
+          </IconLabel>
+        </div>
         <div class="flex items-center gap-2 mt-[0.1rem] min-w-0">
-          <button
-            class="inline-flex items-center gap-[0.3rem] bg-transparent border-none p-0 cursor-pointer text-gray-500 min-w-0 overflow-hidden transition-colors duration-150 hover:text-gray-300"
+          <IconLabel
+            :icon="mdiFolder"
+            :clickable="true"
+            :tooltip="relativePath"
+            class="text-[0.8rem] font-bold text-gray-500 min-w-0 overflow-hidden transition-colors duration-150 hover:text-gray-300"
             title="Open folder"
             @click.stop="openFolder"
           >
-            <svg width="20" height="14" viewBox="0 0 24 24" class="shrink-0">
-              <path :d="mdiFolder" fill="currentColor" />
-            </svg>
-            <span class="text-[0.8rem] overflow-hidden text-ellipsis whitespace-nowrap min-w-0">{{ relativePath }}</span>
-          </button>
-          <span v-if="project.branch" class="inline-flex items-center gap-[0.3rem] text-[0.8rem] text-gray-500 whitespace-nowrap shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" class="shrink-0" aria-hidden="true">
-              <path :d="mdiSourceBranch" fill="currentColor" />
-            </svg>
-            {{ project.branch }}
-          </span>
+            {{ relativePath }}
+          </IconLabel>
         </div>
       </div>
     </div>
@@ -35,6 +39,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { mdiFileCode, mdiSourceBranch, mdiFolder } from "@mdi/js";
+import IconLabel from "@/components/common/IconLabel.vue";
 
 const props = defineProps<{
   project: { name: string; path: string; branch?: string; group: string };
@@ -46,7 +51,9 @@ const emit = defineEmits<{
 
 const relativePath = computed(() => {
   const p = props.project.path.replace(/\\/g, "/");
-  const home = (p.match(/^[A-Za-z]:\/Users\/[^/]+/) ?? p.match(/^\/home\/[^/]+/))?.[0] ?? "";
+  const home =
+    (p.match(/^[A-Za-z]:\/Users\/[^/]+/) ?? p.match(/^\/home\/[^/]+/))?.[0] ??
+    "";
   if (home && p.startsWith(home)) {
     return "~" + p.slice(home.length);
   }
