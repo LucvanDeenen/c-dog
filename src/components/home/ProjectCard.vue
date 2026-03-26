@@ -97,8 +97,8 @@ const loadingEditors = ref(false);
 
 const relativePath = computed(() => {
   const p = props.project.path.replace(/\\/g, "/");
-  const home = (p.match(/^[A-Za-z]:\/Users\/[^/]+/) ?? p.match(/^\/home\/[^/]+/))?.[0] ?? "";
-  return home && p.startsWith(home) ? "~" + p.slice(home.length) : p;
+  const parts = p.split("/");
+  return parts.length >= 2 ? parts[parts.length - 2] : p;
 });
 
 const currentIcon = computed(() => editorIcon(editorHint.value ?? ""));

@@ -44,6 +44,8 @@ const props = defineProps<{
   searchQuery: string;
   hiddenGroups?: string[];
   grouped?: boolean;
+  sortByRecent?: boolean;
+  recentlyOpened?: Record<string, number>;
 }>();
 const emit = defineEmits(["openProject"]);
 
@@ -52,13 +54,22 @@ const filteredProjects = computed(() => {
   const visible = hidden.size > 0
     ? props.projects.filter((p) => !hidden.has(p.group))
     : props.projects;
-  if (!props.searchQuery) return visible;
-  const query = props.searchQuery.toLowerCase();
-  return visible.filter(
-    (project) =>
-      project.name.toLowerCase().includes(query) ||
-      project.path.toLowerCase().includes(query)
-  );
+  const searched = props.searchQuery
+    ? (() => {
+        const query = props.searchQuery.toLowerCase();
+        return visible.filter(
+          (p) => p.name.toLowerCase().includes(query) || p.path.toLowerCase().includes(query)
+        );
+      })()
+    : visible;
+  if (!props.sortByRecent) return searched;
+  const recent = props.recentlyOpened ?? {};
+  return [...searched].sort((a, b) => {
+    const ta = recent[a.path] ?? 0;
+    const tb = recent[b.path] ?? 0;
+    if (tb !== ta) return tb - ta;
+    return a.name.localeCompare(b.name);
+  });
 });
 
 const groupedProjects = computed(() => {

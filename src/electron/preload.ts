@@ -21,6 +21,7 @@ const api = {
     setRepoPaths: (value: string[]) => ipcRenderer.invoke('settings.setRepoPaths', [value]),
     setPreferredEditor: (id: string) => ipcRenderer.invoke('settings.setPreferredEditor', [id]),
     setProjectEditor: (projectPath: string, editorId: string | null) => ipcRenderer.invoke('settings.setProjectEditor', [projectPath, editorId]),
+    recordProjectOpen: (projectPath: string) => ipcRenderer.invoke('settings.recordProjectOpen', [projectPath]),
     getVersion: () => ipcRenderer.invoke('settings.getVersion', []),
   },
   fs: {

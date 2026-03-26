@@ -41,4 +41,8 @@ export class SettingsHandler {
   setProjectEditor(projectPath: string, editorId: string | null): void {
     getSettingsManager().setProjectEditor(projectPath, editorId);
   }
+
+  recordProjectOpen(projectPath: string): void {
+    getSettingsManager().recordProjectOpen(projectPath);
+  }
 }

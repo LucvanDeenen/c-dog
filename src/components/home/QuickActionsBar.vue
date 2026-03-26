@@ -14,7 +14,8 @@
 
     <div class="w-px h-5 bg-neutral-700/60 mx-1" />
 
-    <!-- Actions: toggle grouping + refresh -->
+    <!-- Actions: sort + toggle grouping + refresh -->
+    <SortQuickAction :sort-by-recent="sortByRecent" @toggle="emit('toggleSort')" />
     <ToggleGroupingQuickAction :grouped="grouped" @toggle="emit('toggleGrouping')" />
     <RefreshQuickAction :loading="loading" @refresh="emit('refresh')" />
   </div>
@@ -27,12 +28,14 @@ import OpenEditorQuickAction from "./quick-actions/OpenEditorQuickAction.vue";
 import TerminalQuickAction from "./quick-actions/TerminalQuickAction.vue";
 import RefreshQuickAction from "./quick-actions/RefreshQuickAction.vue";
 import ToggleGroupingQuickAction from "./quick-actions/ToggleGroupingQuickAction.vue";
+import SortQuickAction from "./quick-actions/SortQuickAction.vue";
 
 defineProps<{
   preferredEditor: string;
   loading?: boolean;
   groups?: string[];
   grouped: boolean;
+  sortByRecent: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -40,5 +43,6 @@ const emit = defineEmits<{
   refresh: [];
   sectionsChanged: [hiddenGroups: string[]];
   toggleGrouping: [];
+  toggleSort: [];
 }>();
 </script>

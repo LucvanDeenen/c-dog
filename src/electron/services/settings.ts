@@ -25,6 +25,7 @@ export interface Settings {
   repoPaths: string[];
   preferredEditor: string;
   projectEditors: Record<string, string>;
+  recentlyOpened: Record<string, number>;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -33,6 +34,7 @@ const DEFAULT_SETTINGS: Settings = {
   repoPaths: ["~/repos"],
   preferredEditor: "vscode",
   projectEditors: {},
+  recentlyOpened: {},
 };
 
 export class SettingsManager {
@@ -109,6 +111,11 @@ export class SettingsManager {
 
   getProjectEditor(projectPath: string): string | undefined {
     return this.settings.projectEditors[projectPath];
+  }
+
+  recordProjectOpen(projectPath: string): void {
+    this.settings.recentlyOpened[projectPath] = Date.now();
+    this.saveSettings();
   }
 
   setProjectEditor(projectPath: string, editorId: string | null): void {

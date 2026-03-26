@@ -13,10 +13,12 @@
       :loading="loadingProjects"
       :groups="groups"
       :grouped="grouped"
+      :sortByRecent="sortByRecent"
       @editorChanged="preferredEditor = $event"
       @refresh="loadProjects"
       @sectionsChanged="hiddenGroups = $event"
       @toggleGrouping="grouped = !grouped"
+      @toggleSort="sortByRecent = !sortByRecent"
     />
     <HomeContent
       :windowMode="windowMode"
@@ -25,6 +27,8 @@
       :searchQuery="searchQuery"
       :hiddenGroups="hiddenGroups"
       :grouped="grouped"
+      :sortByRecent="sortByRecent"
+      :recentlyOpened="recentlyOpened"
       @openProject="openProject"
     />
   </div>
@@ -56,6 +60,8 @@ const isSettingsOpen = ref(false);
 const preferredEditor = ref("vscode");
 const hiddenGroups = ref<string[]>([]);
 const grouped = ref(true);
+const sortByRecent = ref(false);
+const recentlyOpened = ref<Record<string, number>>({});
 
 const groups = computed(() => [...new Set(projects.value.map((p) => p.group))]);
 
@@ -87,6 +93,8 @@ const openProject = async (projectPath: string, editorHint?: string) => {
     if (!result) {
       alert("Failed to open project. Make sure your preferred editor is installed and on your PATH.");
     } else {
+      (window.api.settings as any).recordProjectOpen(projectPath);
+      recentlyOpened.value = { ...recentlyOpened.value, [projectPath]: Date.now() };
       minimizeWindowToTray();
     }
   } catch (error) {
@@ -100,6 +108,7 @@ onMounted(async () => {
     const settings = await window.api.settings.getSettings();
     windowMode.value = settings.windowMode;
     preferredEditor.value = settings.preferredEditor ?? "vscode";
+    recentlyOpened.value = settings.recentlyOpened ?? {};
   } catch (error) {
     console.error("Failed to load settings:", error);
   }
