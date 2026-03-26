@@ -1,7 +1,7 @@
 <template>
   <div
     class="p-4 border border-neutral-700/50 rounded-lg bg-neutral-800/40 cursor-pointer transition-colors duration-[160ms] hover:border-yellow-500/60 hover:bg-neutral-700/50"
-    @click="emit('open', project.path)"
+    @click="emit('open', project.path, project.editorHint)"
   >
     <div class="flex items-center gap-2">
       <div class="min-w-0 w-full">
@@ -11,13 +11,20 @@
               {{ project.name }}
             </p>
           </IconLabel>
-          <IconLabel
-            v-if="project.branch"
-            :icon="mdiSourceBranch"
-            class="text-[0.8rem] text-gray-500 whitespace-nowrap shrink-0"
-          >
-            {{ project.branch }}
-          </IconLabel>
+          <div class="flex items-center gap-2 shrink-0">
+            <span
+              v-if="project.editorHint"
+              class="text-[0.7rem] font-semibold px-[0.35rem] py-[0.1rem] rounded"
+              :class="editorBadgeClass"
+            >{{ editorBadgeLabel }}</span>
+            <IconLabel
+              v-if="project.branch"
+              :icon="mdiSourceBranch"
+              class="text-[0.8rem] text-gray-500 whitespace-nowrap"
+            >
+              {{ project.branch }}
+            </IconLabel>
+          </div>
         </div>
         <div class="flex items-center gap-2 mt-[0.1rem] min-w-0">
           <IconLabel
@@ -42,11 +49,11 @@ import { mdiFileCode, mdiSourceBranch, mdiFolder } from "@mdi/js";
 import IconLabel from "@/components/common/IconLabel.vue";
 
 const props = defineProps<{
-  project: { name: string; path: string; branch?: string; group: string };
+  project: { name: string; path: string; branch?: string; group: string; editorHint?: string };
 }>();
 
 const emit = defineEmits<{
-  open: [path: string];
+  open: [path: string, editorHint?: string];
 }>();
 
 const relativePath = computed(() => {
@@ -58,6 +65,22 @@ const relativePath = computed(() => {
     return "~" + p.slice(home.length);
   }
   return p;
+});
+
+const editorBadgeLabel = computed(() => {
+  switch (props.project.editorHint) {
+    case "vscode":     return "VS Code";
+    case "jetbrains":  return "JetBrains";
+    default:           return props.project.editorHint ?? "";
+  }
+});
+
+const editorBadgeClass = computed(() => {
+  switch (props.project.editorHint) {
+    case "vscode":    return "bg-blue-900/60 text-blue-300";
+    case "jetbrains": return "bg-purple-900/60 text-purple-300";
+    default:          return "bg-neutral-700/60 text-gray-400";
+  }
 });
 
 async function openFolder() {

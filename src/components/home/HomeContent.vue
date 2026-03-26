@@ -39,7 +39,7 @@ import ProjectCard from "./ProjectCard.vue";
 
 const props = defineProps<{
   windowMode: string;
-  projects: Array<{ name: string; path: string; branch?: string; group: string }>;
+  projects: Array<{ name: string; path: string; branch?: string; group: string; editorHint?: string }>;
   loadingProjects: boolean;
   searchQuery: string;
 }>();
@@ -64,7 +64,7 @@ const groupedProjects = computed(() => {
   return [...map.entries()].map(([name, projects]) => ({ name, projects }));
 });
 
-function openProject(path: string) {
-  emit("openProject", path);
+function openProject(path: string, editorHint?: string) {
+  emit("openProject", path, editorHint);
 }
 </script>

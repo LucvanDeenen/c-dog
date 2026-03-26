@@ -31,6 +31,7 @@ interface Project {
   path: string;
   branch?: string;
   group: string;
+  editorHint?: string;
 }
 
 const windowMode = ref<WindowMode>("regular");
@@ -61,11 +62,11 @@ const loadProjects = async () => {
   }
 };
 
-const openProject = async (projectPath: string, editor: string = "vscode") => {
+const openProject = async (projectPath: string, editorHint?: string) => {
   try {
-    const result = await window.api.fs.openInEditor(projectPath, editor);
+    const result = await window.api.fs.openInEditor(projectPath, editorHint);
     if (!result) {
-      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
+      alert("Failed to open project. Make sure your preferred editor is installed and on your PATH.");
     } else {
       minimizeWindowToTray();
     }

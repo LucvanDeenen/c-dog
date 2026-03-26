@@ -3,12 +3,59 @@ import { shell, dialog, BrowserWindow } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { spawnSync } from "node:child_process";
+
+export interface EditorInfo {
+  id: string;
+  name: string;
+}
+
+const EDITOR_CANDIDATES: (EditorInfo & { command: string })[] = [
+  { id: "vscode",    name: "Visual Studio Code", command: "code"       },
+  { id: "cursor",    name: "Cursor",              command: "cursor"     },
+  { id: "webstorm",  name: "WebStorm",            command: "webstorm"   },
+  { id: "idea",      name: "IntelliJ IDEA",       command: "idea"       },
+  { id: "sublime",   name: "Sublime Text",        command: "subl"       },
+  { id: "zed",       name: "Zed",                 command: "zed"        },
+];
+
+const EDITOR_COMMAND_MAP: Record<string, string> = Object.fromEntries(
+  EDITOR_CANDIDATES.map((e) => [e.id, e.command])
+);
+
+const JETBRAINS_IDS = ["webstorm", "idea", "goland", "pycharm", "clion", "rider"];
+
+function detectEditorHint(projectPath: string): string | undefined {
+  try {
+    const entries = fs.readdirSync(projectPath);
+    if (entries.some((e) => e.endsWith(".code-workspace"))) return "vscode";
+    if (entries.includes(".vscode")) return "vscode";
+    if (entries.includes(".idea")) return "jetbrains";
+  } catch {
+    // ignore unreadable dirs
+  }
+  return undefined;
+}
+
+function resolveEditorId(hint: string | undefined, fallback: string): string {
+  if (!hint || hint === fallback) return fallback;
+  if (hint === "jetbrains") {
+    const which = process.platform === "win32" ? "where" : "which";
+    for (const id of JETBRAINS_IDS) {
+      const cmd = EDITOR_COMMAND_MAP[id];
+      if (cmd && spawnSync(which, [cmd], { windowsHide: true }).status === 0) return id;
+    }
+    return fallback;
+  }
+  return hint;
+}
 
 export interface Project {
   name: string;
   path: string;
   branch?: string;
   group: string;
+  editorHint?: string;
 }
 
 /**
@@ -32,26 +79,33 @@ export default class FileHandler extends FileSystem {
       return true;
     }
 
-    /**
-     * Open a given path in the specified editor (default: vscode)
-     * @param projectPath The path to open
-     * @param editor The editor to use (e.g., 'vscode')
-     */
-    async openInEditor(projectPath: string, editor: string = "vscode"): Promise<boolean> {
+    async getInstalledEditors(): Promise<EditorInfo[]> {
+      const which = process.platform === "win32" ? "where" : "which";
+      return EDITOR_CANDIDATES.filter((editor) => {
+        const result = spawnSync(which, [editor.command], { windowsHide: true });
+        return result.status === 0;
+      }).map(({ id, name }) => ({ id, name }));
+    }
+
+    async openInEditor(projectPath: string, editorHint?: string): Promise<boolean> {
       try {
-        let command: string;
-        switch (editor) {
-          case "vscode":
-          default:
-            command = `code "${projectPath}"`;
-            break;
+        const { getSettingsManager } = await import("@electron/services/settings");
+        const preferred = getSettingsManager().getSettings().preferredEditor ?? "vscode";
+        const editorId = resolveEditorId(editorHint, preferred);
+        const cliCommand = EDITOR_COMMAND_MAP[editorId] ?? editorId;
+
+        // For VS Code, prefer opening a .code-workspace file if one exists
+        let target = projectPath;
+        if (editorId === "vscode") {
+          try {
+            const workspaceFile = fs.readdirSync(projectPath).find((e) => e.endsWith(".code-workspace"));
+            if (workspaceFile) target = path.join(projectPath, workspaceFile);
+          } catch { /* ignore */ }
         }
+
         const { exec } = await import("child_process");
-        exec(command, (error) => {
-          if (error) {
-            console.error(`Failed to open in editor:`, error);
-            return false;
-          }
+        exec(`${cliCommand} "${target}"`, (error) => {
+          if (error) console.error(`Failed to open in editor:`, error);
         });
         return true;
       } catch (error) {
@@ -85,7 +139,7 @@ export default class FileHandler extends FileSystem {
         } catch {
           branch = undefined;
         }
-        projects.push({ name: entry.name, path: fullPath, branch, group });
+        projects.push({ name: entry.name, path: fullPath, branch, group, editorHint: detectEditorHint(fullPath) });
       } else {
         // Not a git repo itself — recurse into it, group stays the same
         this.scanForGitProjects(fullPath, projects, group);
@@ -136,7 +190,7 @@ export default class FileHandler extends FileSystem {
             } catch {
               branch = undefined;
             }
-            projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup });
+            projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup, editorHint: detectEditorHint(fullPath) });
           } else {
             this.scanForGitProjects(fullPath, projects, entry.name);
           }

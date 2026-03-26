@@ -19,12 +19,14 @@ const api = {
     getLaunchAtStartup: () => ipcRenderer.invoke('settings.getLaunchAtStartup', []),
     setLaunchAtStartup: (value: boolean) => ipcRenderer.invoke('settings.setLaunchAtStartup', [value]),
     setRepoPaths: (value: string[]) => ipcRenderer.invoke('settings.setRepoPaths', [value]),
+    setPreferredEditor: (id: string) => ipcRenderer.invoke('settings.setPreferredEditor', [id]),
     getVersion: () => ipcRenderer.invoke('settings.getVersion', []),
   },
   fs: {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
     pickDirectory: () => ipcRenderer.invoke('fs.pickDirectory', []),
-    openInEditor: (projectPath: string, editor: string = "vscode") => ipcRenderer.invoke('fs.openInEditor', [projectPath, editor]),
+    getInstalledEditors: () => ipcRenderer.invoke('fs.getInstalledEditors', []),
+    openInEditor: (projectPath: string, editorHint?: string) => ipcRenderer.invoke('fs.openInEditor', [projectPath, editorHint]),
     openFolder: (projectPath: string) => ipcRenderer.invoke('fs.openFolder', [projectPath]),
   },
   window: {
