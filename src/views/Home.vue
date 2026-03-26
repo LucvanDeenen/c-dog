@@ -11,14 +11,20 @@
     <QuickActionsBar
       :preferredEditor="preferredEditor"
       :loading="loadingProjects"
+      :groups="groups"
+      :grouped="grouped"
       @editorChanged="preferredEditor = $event"
       @refresh="loadProjects"
+      @sectionsChanged="hiddenGroups = $event"
+      @toggleGrouping="grouped = !grouped"
     />
     <HomeContent
       :windowMode="windowMode"
       :projects="projects"
       :loadingProjects="loadingProjects"
       :searchQuery="searchQuery"
+      :hiddenGroups="hiddenGroups"
+      :grouped="grouped"
       @openProject="openProject"
     />
   </div>
@@ -26,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import type { WindowMode } from "@electron/services/settings";
 import HomeHeader from "@/components/home/HomeHeader.vue";
 import HomeContent from "@/components/home/HomeContent.vue";
@@ -48,6 +54,10 @@ const loadingProjects = ref(true);
 const searchQuery = ref("");
 const isSettingsOpen = ref(false);
 const preferredEditor = ref("vscode");
+const hiddenGroups = ref<string[]>([]);
+const grouped = ref(true);
+
+const groups = computed(() => [...new Set(projects.value.map((p) => p.group))]);
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 

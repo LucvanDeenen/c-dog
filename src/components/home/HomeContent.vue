@@ -42,13 +42,19 @@ const props = defineProps<{
   projects: Array<{ name: string; path: string; branch?: string; group: string; editorHint?: string; editorExplicit?: boolean }>;
   loadingProjects: boolean;
   searchQuery: string;
+  hiddenGroups?: string[];
+  grouped?: boolean;
 }>();
 const emit = defineEmits(["openProject"]);
 
 const filteredProjects = computed(() => {
-  if (!props.searchQuery) return props.projects;
+  const hidden = new Set(props.hiddenGroups ?? []);
+  const visible = hidden.size > 0
+    ? props.projects.filter((p) => !hidden.has(p.group))
+    : props.projects;
+  if (!props.searchQuery) return visible;
   const query = props.searchQuery.toLowerCase();
-  return props.projects.filter(
+  return visible.filter(
     (project) =>
       project.name.toLowerCase().includes(query) ||
       project.path.toLowerCase().includes(query)
@@ -56,6 +62,7 @@ const filteredProjects = computed(() => {
 });
 
 const groupedProjects = computed(() => {
+  if (props.grouped === false) return [{ name: "", projects: filteredProjects.value }];
   const map = new Map<string, typeof filteredProjects.value>();
   for (const project of filteredProjects.value) {
     if (!map.has(project.group)) map.set(project.group, []);

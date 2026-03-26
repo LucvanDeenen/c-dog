@@ -13,8 +13,6 @@
         <div class="border-t border-neutral-700/50" />
         <RepositoriesSetting :initial-value="settings.repoPaths" @paths-changed="emit('pathsChanged')" />
         <div class="border-t border-neutral-700/50" />
-        <EditorSetting :initial-value="settings.preferredEditor" />
-        <div class="border-t border-neutral-700/50" />
         <WindowModeSetting :initial-value="settings.windowMode" />
       </div>
     </div>
@@ -27,7 +25,6 @@ import type { Settings } from "@electron/services/settings";
 import WindowModeSetting from "./WindowModeSetting.vue";
 import RepositoriesSetting from "./RepositoriesSetting.vue";
 import StartupSetting from "./StartupSetting.vue";
-import EditorSetting from "./EditorSetting.vue";
 
 const props = defineProps<{
   isOpen: boolean;
