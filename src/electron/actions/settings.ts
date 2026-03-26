@@ -33,4 +33,8 @@ export class SettingsHandler {
   setRepoPaths(value: string[]): void {
     getSettingsManager().setRepoPaths(value);
   }
+
+  setPreferredEditor(id: string): void {
+    getSettingsManager().setPreferredEditor(id);
+  }
 }

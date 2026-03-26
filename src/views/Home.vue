@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full" :data-window-mode="windowMode">
+  <div class="h-full flex flex-col" :data-window-mode="windowMode">
     <HomeHeader
       :windowMode="windowMode"
       :searchQuery="searchQuery"
@@ -7,6 +7,12 @@
       @toggleWindowMode="toggleWindowMode"
       @closeToTray="minimizeWindowToTray"
       @openSettings="isSettingsOpen = true"
+    />
+    <QuickActionsBar
+      :preferredEditor="preferredEditor"
+      :loading="loadingProjects"
+      @editorChanged="preferredEditor = $event"
+      @refresh="loadProjects"
     />
     <HomeContent
       :windowMode="windowMode"
@@ -24,6 +30,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import type { WindowMode } from "@electron/services/settings";
 import HomeHeader from "@/components/home/HomeHeader.vue";
 import HomeContent from "@/components/home/HomeContent.vue";
+import QuickActionsBar from "@/components/home/QuickActionsBar.vue";
 import Settings from "@/components/settings/Settings.vue";
 
 interface Project {
@@ -31,6 +38,8 @@ interface Project {
   path: string;
   branch?: string;
   group: string;
+  editorHint?: string;
+  editorExplicit?: boolean;
 }
 
 const windowMode = ref<WindowMode>("regular");
@@ -38,6 +47,7 @@ const projects = ref<Project[]>([]);
 const loadingProjects = ref(true);
 const searchQuery = ref("");
 const isSettingsOpen = ref(false);
+const preferredEditor = ref("vscode");
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
@@ -61,11 +71,11 @@ const loadProjects = async () => {
   }
 };
 
-const openProject = async (projectPath: string, editor: string = "vscode") => {
+const openProject = async (projectPath: string, editorHint?: string) => {
   try {
-    const result = await window.api.fs.openInEditor(projectPath, editor);
+    const result = await window.api.fs.openInEditor(projectPath, editorHint);
     if (!result) {
-      alert(`Failed to open project in ${editor}. Make sure it is installed and on your PATH.`);
+      alert("Failed to open project. Make sure your preferred editor is installed and on your PATH.");
     } else {
       minimizeWindowToTray();
     }
@@ -77,11 +87,11 @@ const openProject = async (projectPath: string, editor: string = "vscode") => {
 onMounted(async () => {
   // Fetch current window mode on mount
   try {
-    const currentMode = await window.api.settings.getWindowMode();
-    windowMode.value = currentMode;
-    console.log("Home.vue loaded, current window mode:", currentMode);
+    const settings = await window.api.settings.getSettings();
+    windowMode.value = settings.windowMode;
+    preferredEditor.value = settings.preferredEditor ?? "vscode";
   } catch (error) {
-    console.error("Failed to load window mode:", error);
+    console.error("Failed to load settings:", error);
   }
 
   loadProjects();

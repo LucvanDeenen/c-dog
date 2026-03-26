@@ -23,12 +23,14 @@ export interface Settings {
   windowMode: WindowMode;
   launchAtStartup: boolean;
   repoPaths: string[];
+  preferredEditor: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   windowMode: "regular",
   launchAtStartup: false,
   repoPaths: ["~/repos"],
+  preferredEditor: "vscode",
 };
 
 export class SettingsManager {
@@ -95,6 +97,11 @@ export class SettingsManager {
 
   setRepoPaths(value: string[]): void {
     this.settings.repoPaths = value;
+    this.saveSettings();
+  }
+
+  setPreferredEditor(id: string): void {
+    this.settings.preferredEditor = id;
     this.saveSettings();
   }
 
