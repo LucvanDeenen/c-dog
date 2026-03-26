@@ -26,6 +26,8 @@ const api = {
     listGitProjects: () => ipcRenderer.invoke('fs.listGitProjects', []),
     pickDirectory: () => ipcRenderer.invoke('fs.pickDirectory', []),
     getInstalledEditors: () => ipcRenderer.invoke('fs.getInstalledEditors', []),
+    openEditor: (editorId?: string) => ipcRenderer.invoke('fs.openEditor', [editorId]),
+    openTerminal: (cwd?: string) => ipcRenderer.invoke('fs.openTerminal', [cwd]),
     openInEditor: (projectPath: string, editorHint?: string) => ipcRenderer.invoke('fs.openInEditor', [projectPath, editorHint]),
     openFolder: (projectPath: string) => ipcRenderer.invoke('fs.openFolder', [projectPath]),
   },

@@ -79,6 +79,63 @@ export default class FileHandler extends FileSystem {
       return true;
     }
 
+    async openTerminal(cwd?: string): Promise<boolean> {
+      try {
+        const workingDir = cwd ?? os.homedir();
+        const { exec } = await import("child_process");
+
+        if (process.platform === "win32") {
+          const gitBashPaths = [
+            "C:\\Program Files\\Git\\git-bash.exe",
+            "C:\\Program Files (x86)\\Git\\git-bash.exe",
+          ];
+          const gitBash = gitBashPaths.find((p) => fs.existsSync(p));
+          if (gitBash) {
+            exec(`"${gitBash}" --cd="${workingDir}"`);
+            return true;
+          }
+          // Fall back to Windows Terminal, then cmd
+          const wtCheck = spawnSync("where", ["wt"], { windowsHide: true });
+          if (wtCheck.status === 0) {
+            exec(`wt -d "${workingDir}"`);
+          } else {
+            exec(`start cmd`, { shell: true });
+          }
+          return true;
+        }
+
+        // macOS
+        if (process.platform === "darwin") {
+          exec(`open -a Terminal "${workingDir}"`);
+          return true;
+        }
+
+        // Linux
+        exec(`x-terminal-emulator`);
+        return true;
+      } catch (error) {
+        console.error("Error opening terminal:", error);
+        return false;
+      }
+    }
+
+    async openEditor(editorId?: string): Promise<boolean> {
+      try {
+        const { getSettingsManager } = await import("@electron/services/settings");
+        const preferred = getSettingsManager().getSettings().preferredEditor ?? "vscode";
+        const id = editorId ?? preferred;
+        const cliCommand = EDITOR_COMMAND_MAP[id] ?? id;
+        const { exec } = await import("child_process");
+        exec(cliCommand, (error) => {
+          if (error) console.error("Failed to open editor:", error);
+        });
+        return true;
+      } catch (error) {
+        console.error("Error opening editor:", error);
+        return false;
+      }
+    }
+
     async getInstalledEditors(): Promise<EditorInfo[]> {
       const which = process.platform === "win32" ? "where" : "which";
       return EDITOR_CANDIDATES.filter((editor) => {

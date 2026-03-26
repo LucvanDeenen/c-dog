@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full" :data-window-mode="windowMode">
+  <div class="h-full flex flex-col" :data-window-mode="windowMode">
     <HomeHeader
       :windowMode="windowMode"
       :searchQuery="searchQuery"
@@ -7,6 +7,10 @@
       @toggleWindowMode="toggleWindowMode"
       @closeToTray="minimizeWindowToTray"
       @openSettings="isSettingsOpen = true"
+    />
+    <QuickActionsBar
+      :preferredEditor="preferredEditor"
+      @editorChanged="preferredEditor = $event"
     />
     <HomeContent
       :windowMode="windowMode"
@@ -24,6 +28,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import type { WindowMode } from "@electron/services/settings";
 import HomeHeader from "@/components/home/HomeHeader.vue";
 import HomeContent from "@/components/home/HomeContent.vue";
+import QuickActionsBar from "@/components/home/QuickActionsBar.vue";
 import Settings from "@/components/settings/Settings.vue";
 
 interface Project {
@@ -39,6 +44,7 @@ const projects = ref<Project[]>([]);
 const loadingProjects = ref(true);
 const searchQuery = ref("");
 const isSettingsOpen = ref(false);
+const preferredEditor = ref("vscode");
 
 let modeChangeHandler: ((_event: any, mode: WindowMode) => void) | null = null;
 
@@ -78,11 +84,11 @@ const openProject = async (projectPath: string, editorHint?: string) => {
 onMounted(async () => {
   // Fetch current window mode on mount
   try {
-    const currentMode = await window.api.settings.getWindowMode();
-    windowMode.value = currentMode;
-    console.log("Home.vue loaded, current window mode:", currentMode);
+    const settings = await window.api.settings.getSettings();
+    windowMode.value = settings.windowMode;
+    preferredEditor.value = settings.preferredEditor ?? "vscode";
   } catch (error) {
-    console.error("Failed to load window mode:", error);
+    console.error("Failed to load settings:", error);
   }
 
   loadProjects();
