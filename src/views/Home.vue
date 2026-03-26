@@ -39,6 +39,7 @@ interface Project {
   branch?: string;
   group: string;
   editorHint?: string;
+  editorExplicit?: boolean;
 }
 
 const windowMode = ref<WindowMode>("regular");

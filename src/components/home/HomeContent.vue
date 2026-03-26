@@ -39,7 +39,7 @@ import ProjectCard from "./ProjectCard.vue";
 
 const props = defineProps<{
   windowMode: string;
-  projects: Array<{ name: string; path: string; branch?: string; group: string; editorHint?: string }>;
+  projects: Array<{ name: string; path: string; branch?: string; group: string; editorHint?: string; editorExplicit?: boolean }>;
   loadingProjects: boolean;
   searchQuery: string;
 }>();

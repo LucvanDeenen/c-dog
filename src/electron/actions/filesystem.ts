@@ -28,16 +28,25 @@ const EDITOR_COMMAND_MAP: Record<string, string> = Object.fromEntries(
 
 const JETBRAINS_IDS = ["webstorm", "idea", "goland", "pycharm", "clion", "rider"];
 
-function detectEditorHint(projectPath: string): string | undefined {
+function detectEditorHint(projectPath: string): { hint?: string; explicit: boolean } {
+  // .shelf file takes highest priority
+  try {
+    const shelfPath = path.join(projectPath, ".shelf");
+    if (fs.existsSync(shelfPath)) {
+      const config = JSON.parse(fs.readFileSync(shelfPath, "utf-8"));
+      if (config.editor) return { hint: config.editor, explicit: true };
+    }
+  } catch { /* ignore */ }
+
+  // Auto-detect from workspace markers
   try {
     const entries = fs.readdirSync(projectPath);
-    if (entries.some((e) => e.endsWith(".code-workspace"))) return "vscode";
-    if (entries.includes(".vscode")) return "vscode";
-    if (entries.includes(".idea")) return "jetbrains";
-  } catch {
-    // ignore unreadable dirs
-  }
-  return undefined;
+    if (entries.some((e) => e.endsWith(".code-workspace"))) return { hint: "vscode", explicit: false };
+    if (entries.includes(".vscode")) return { hint: "vscode", explicit: false };
+    if (entries.includes(".idea")) return { hint: "jetbrains", explicit: false };
+  } catch { /* ignore */ }
+
+  return { explicit: false };
 }
 
 function resolveEditorId(hint: string | undefined, fallback: string): string {
@@ -59,6 +68,7 @@ export interface Project {
   branch?: string;
   group: string;
   editorHint?: string;
+  editorExplicit?: boolean;
 }
 
 /**
@@ -102,7 +112,7 @@ export default class FileHandler extends FileSystem {
           if (wtCheck.status === 0) {
             exec(`wt -d "${workingDir}"`);
           } else {
-            exec(`start cmd`, { shell: true });
+            exec(`cmd /c start cmd`);
           }
           return true;
         }
@@ -136,6 +146,15 @@ export default class FileHandler extends FileSystem {
       } catch (error) {
         console.error("Error opening editor:", error);
         return false;
+      }
+    }
+
+    async setProjectEditor(projectPath: string, editorId: string | null): Promise<void> {
+      const shelfPath = path.join(projectPath, ".shelf");
+      if (editorId === null) {
+        if (fs.existsSync(shelfPath)) fs.unlinkSync(shelfPath);
+      } else {
+        fs.writeFileSync(shelfPath, JSON.stringify({ editor: editorId }, null, 2));
       }
     }
 
@@ -199,7 +218,8 @@ export default class FileHandler extends FileSystem {
         } catch {
           branch = undefined;
         }
-        projects.push({ name: entry.name, path: fullPath, branch, group, editorHint: detectEditorHint(fullPath) });
+        const { hint, explicit } = detectEditorHint(fullPath);
+        projects.push({ name: entry.name, path: fullPath, branch, group, editorHint: hint, editorExplicit: explicit });
       } else {
         // Not a git repo itself — recurse into it, group stays the same
         this.scanForGitProjects(fullPath, projects, group);
@@ -250,7 +270,8 @@ export default class FileHandler extends FileSystem {
             } catch {
               branch = undefined;
             }
-            projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup, editorHint: detectEditorHint(fullPath) });
+            const { hint, explicit } = detectEditorHint(fullPath);
+            projects.push({ name: entry.name, path: fullPath, branch, group: rootGroup, editorHint: hint, editorExplicit: explicit });
           } else {
             this.scanForGitProjects(fullPath, projects, entry.name);
           }
