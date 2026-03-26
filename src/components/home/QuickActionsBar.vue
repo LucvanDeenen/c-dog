@@ -33,6 +33,24 @@
         <path :d="mdiConsoleLine" fill="currentColor" />
       </svg>
     </button>
+
+    <div class="flex-1" />
+
+    <div class="w-px h-5 bg-neutral-700/60 mx-1" />
+
+    <button
+      type="button"
+      title="Refresh projects"
+      :class="[
+        'h-8 w-8 inline-flex items-center justify-center rounded-lg border border-transparent text-gray-500 transition-colors duration-150 cursor-pointer hover:bg-neutral-700/50 hover:text-gray-300',
+        loading && 'animate-spin pointer-events-none',
+      ]"
+      @click="emit('refresh')"
+    >
+      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+        <path :d="mdiRefresh" fill="currentColor" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -40,8 +58,17 @@
 import { ref, onMounted } from "vue";
 import {
   mdiMicrosoftVisualStudioCode,
+  mdiCursorDefault,
+  mdiLanguageJavascript,
+  mdiLanguageCsharp,
+  mdiLanguageJava,
+  mdiLanguageGo,
+  mdiLanguagePython,
+  mdiNoteText,
+  mdiBolt,
   mdiCodeBraces,
   mdiConsoleLine,
+  mdiRefresh,
 } from "@mdi/js";
 
 interface EditorInfo {
@@ -50,7 +77,15 @@ interface EditorInfo {
 }
 
 const EDITOR_ICONS: Record<string, string> = {
-  vscode: mdiMicrosoftVisualStudioCode,
+  vscode:   mdiMicrosoftVisualStudioCode,
+  cursor:   mdiCursorDefault,
+  webstorm: mdiLanguageJavascript,
+  rider:    mdiLanguageCsharp,
+  idea:     mdiLanguageJava,
+  goland:   mdiLanguageGo,
+  pycharm:  mdiLanguagePython,
+  sublime:  mdiNoteText,
+  zed:      mdiBolt,
 };
 
 function editorIcon(id: string): string {
@@ -59,10 +94,12 @@ function editorIcon(id: string): string {
 
 const props = defineProps<{
   preferredEditor: string;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
   editorChanged: [id: string];
+  refresh: [];
 }>();
 
 const editors = ref<EditorInfo[]>([]);

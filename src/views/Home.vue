@@ -10,7 +10,9 @@
     />
     <QuickActionsBar
       :preferredEditor="preferredEditor"
+      :loading="loadingProjects"
       @editorChanged="preferredEditor = $event"
+      @refresh="loadProjects"
     />
     <HomeContent
       :windowMode="windowMode"

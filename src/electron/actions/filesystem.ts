@@ -14,7 +14,10 @@ const EDITOR_CANDIDATES: (EditorInfo & { command: string })[] = [
   { id: "vscode",    name: "Visual Studio Code", command: "code"       },
   { id: "cursor",    name: "Cursor",              command: "cursor"     },
   { id: "webstorm",  name: "WebStorm",            command: "webstorm"   },
+  { id: "rider",     name: "Rider",               command: "rider"      },
   { id: "idea",      name: "IntelliJ IDEA",       command: "idea"       },
+  { id: "goland",    name: "GoLand",              command: "goland"     },
+  { id: "pycharm",   name: "PyCharm",             command: "pycharm"    },
   { id: "sublime",   name: "Sublime Text",        command: "subl"       },
   { id: "zed",       name: "Zed",                 command: "zed"        },
 ];
