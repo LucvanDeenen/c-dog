@@ -14,6 +14,7 @@
       :groups="groups"
       :grouped="grouped"
       :sortByRecent="sortByRecent"
+      :hiddenGroups="hiddenGroups"
       @editorChanged="preferredEditor = $event"
       @refresh="loadProjects"
       @sectionsChanged="hiddenGroups = $event"
@@ -36,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import type { WindowMode } from "@electron/services/settings";
 import HomeHeader from "@/components/home/HomeHeader.vue";
 import HomeContent from "@/components/home/HomeContent.vue";
@@ -52,16 +53,45 @@ interface Project {
   editorExplicit?: boolean;
 }
 
+function loadUIState() {
+  try {
+    const raw = localStorage.getItem("shelf:uiState");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveUIState(state: Record<string, unknown>) {
+  try {
+    const current = loadUIState();
+    localStorage.setItem("shelf:uiState", JSON.stringify({ ...current, ...state }));
+  } catch {}
+}
+
+const saved = loadUIState();
+const cachedProjects: Project[] = (() => {
+  try {
+    const raw = localStorage.getItem("shelf:projectsCache");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+})();
+
 const windowMode = ref<WindowMode>("regular");
-const projects = ref<Project[]>([]);
-const loadingProjects = ref(true);
-const searchQuery = ref("");
+const projects = ref<Project[]>(cachedProjects);
+const loadingProjects = ref(cachedProjects.length === 0);
+const searchQuery = ref<string>(saved.searchQuery ?? "");
 const isSettingsOpen = ref(false);
 const preferredEditor = ref("vscode");
-const hiddenGroups = ref<string[]>([]);
-const grouped = ref(true);
-const sortByRecent = ref(false);
+const hiddenGroups = ref<string[]>(saved.hiddenGroups ?? []);
+const grouped = ref<boolean>(saved.grouped ?? true);
+const sortByRecent = ref<boolean>(saved.sortByRecent ?? false);
 const recentlyOpened = ref<Record<string, number>>({});
+
+watch(searchQuery, (v) => saveUIState({ searchQuery: v }));
+watch(hiddenGroups, (v) => saveUIState({ hiddenGroups: v }), { deep: true });
+watch(grouped, (v) => saveUIState({ grouped: v }));
+watch(sortByRecent, (v) => saveUIState({ sortByRecent: v }));
 
 const groups = computed(() => [...new Set(projects.value.map((p) => p.group))]);
 
@@ -77,9 +107,11 @@ const toggleWindowMode = async () => {
 };
 
 const loadProjects = async () => {
-  loadingProjects.value = true;
+  if (projects.value.length === 0) loadingProjects.value = true;
   try {
-    projects.value = await window.api.fs.listGitProjects();
+    const result = await window.api.fs.listGitProjects();
+    projects.value = result;
+    try { localStorage.setItem("shelf:projectsCache", JSON.stringify(result)); } catch {}
   } catch (error) {
     console.error("Failed to load projects:", error);
   } finally {

@@ -89,6 +89,9 @@ const emit = defineEmits<{
   open: [path: string, editorHint?: string];
 }>();
 
+// autoHint is the hint from workspace file detection (no explicit override).
+// We preserve it so "reset to auto-detect" can restore it without a reload.
+const autoHint = props.project.editorExplicit ? undefined : props.project.editorHint;
 const editorHint = ref(props.project.editorHint);
 const editorExplicit = ref(props.project.editorExplicit ?? false);
 const showPicker = ref(false);
@@ -130,6 +133,7 @@ async function setEditor(id: string) {
 
 async function clearEditor() {
   await (window.api.settings as any).setProjectEditor(props.project.path, null);
+  editorHint.value = autoHint;
   editorExplicit.value = false;
   showPicker.value = false;
 }

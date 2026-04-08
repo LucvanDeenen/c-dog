@@ -45,8 +45,9 @@
 import { ref } from "vue";
 import { mdiLayers, mdiEye, mdiEyeOff } from "@mdi/js";
 
-defineProps<{
+const props = defineProps<{
   groups?: string[];
+  initialHiddenGroups?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -54,7 +55,7 @@ const emit = defineEmits<{
 }>();
 
 const showDropdown = ref(false);
-const hiddenGroups = ref(new Set<string>());
+const hiddenGroups = ref(new Set<string>(props.initialHiddenGroups ?? []));
 
 function toggleGroup(group: string) {
   if (hiddenGroups.value.has(group)) {
