@@ -41,6 +41,16 @@
             placeholder="Search projects..."
             class="flex-1 min-w-0 border-0 outline-none bg-transparent text-white text-[0.9rem] leading-[1.3] placeholder:text-gray-500"
           />
+          <button
+            v-if="searchQuery"
+            @click="emit('update:searchQuery', '')"
+            class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+            aria-label="Clear search"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path :d="mdiClose" fill="currentColor" />
+            </svg>
+          </button>
         </label>
       </div>
 
