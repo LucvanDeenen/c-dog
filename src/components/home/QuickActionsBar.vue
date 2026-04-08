@@ -2,7 +2,7 @@
   <div class="flex-shrink-0 flex items-center gap-1 px-3 py-2 border-b border-neutral-700/50 bg-neutral-900/40">
     <!-- Configuration: default editor + section visibility -->
     <EditorQuickAction :preferred-editor="preferredEditor" @editor-changed="emit('editorChanged', $event)" />
-    <SectionsQuickAction :groups="groups" @sections-changed="emit('sectionsChanged', $event)" />
+    <SectionsQuickAction :groups="groups" :initial-hidden-groups="hiddenGroups" @sections-changed="emit('sectionsChanged', $event)" />
 
     <div class="w-px h-5 bg-neutral-700/60 mx-1" />
 
@@ -36,6 +36,7 @@ defineProps<{
   groups?: string[];
   grouped: boolean;
   sortByRecent: boolean;
+  hiddenGroups?: string[];
 }>();
 
 const emit = defineEmits<{
